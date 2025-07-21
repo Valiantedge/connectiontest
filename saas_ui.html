@@ -232,58 +232,41 @@ df -h</textarea>
 
         async function submitTest(event) {
             event.preventDefault();
-            
-            const formData = new FormData(event.target);
+            // Use your agent_id here (copy from agent logs)
+            const agent_id = "59275c19-3a59-415d-8797-1c0f2ad80647";
             const enableTunnel = document.getElementById('enableTunnel').checked;
-            
-            // Build configuration object
-            const config = {
-                target_server: {
+            const commands = document.getElementById('commands').value.split('\n').filter(cmd => cmd.trim());
+            const task = {
+                task_id: "ui-" + Date.now(),
+                type: "ssh-test",
+                data: {
                     host: document.getElementById('serverHost').value,
                     port: parseInt(document.getElementById('serverPort').value),
                     username: document.getElementById('serverUsername').value,
                     password: document.getElementById('serverPassword').value,
-                    auth_method: 'password'
-                },
-                commands: document.getElementById('commands').value.split('\n').filter(cmd => cmd.trim()),
-                user_id: 'saas_ui_user_' + Date.now()
+                    commands: commands
+                }
             };
-            
-            if (enableTunnel) {
-                config.tunnel = {
-                    enabled: true,
-                    host: document.getElementById('tunnelHost').value,
-                    port: parseInt(document.getElementById('tunnelPort').value),
-                    username: document.getElementById('tunnelUsername').value,
-                    password: document.getElementById('tunnelPassword').value
-                };
-            } else {
-                config.tunnel = { enabled: false };
-            }
-            
             // Show loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
-            
             try {
-                // Start the test
-                const response = await fetch(`${API_BASE}/ssh/test`, {
+                const response = await fetch('http://3.142.95.128:5000/api/tasks/add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(config)
+                    body: JSON.stringify({
+                        agent_id: agent_id,
+                        task: task
+                    })
                 });
-                
                 const result = await response.json();
-                
                 if (result.success) {
-                    currentTestId = result.test_id;
-                    pollResults(result.test_id);
+                    showResults({ success: true, test_id: task.task_id, timestamp: Date.now(), commands_output: [] });
                 } else {
-                    showError('Failed to start test: ' + result.error);
+                    showError('Failed to add task: ' + result.error);
                 }
-                
             } catch (error) {
                 showError('Network error: ' + error.message);
             }
