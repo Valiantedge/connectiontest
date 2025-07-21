@@ -47,59 +47,47 @@ class SaaSSSHConnectionTester:
         Returns:
             Dictionary with test results
         """
-        
-        # Validate configuration
-        validation_result = self._validate_config(connection_config)
-        if not validation_result['valid']:
-            return {
-                'success': False,
-                'error': validation_result['error'],
-                'test_id': connection_config.get('test_id', 'unknown'),
-                'timestamp': datetime.now().isoformat()
-            }
-        
-        test_id = connection_config.get('test_id', f"test_{int(time.time())}")
-        self.logger.info(f"Starting SSH connection test {test_id}")
-        
-        ssh_client = None
-        tunnel_client = None
-        results = {
-            'success': False,
-            'test_id': test_id,
-            'timestamp': datetime.now().isoformat(),
-            'steps': [],
-            'commands_output': [],
-            'error': None,
-            'connection_time': None
-        }
-        
-        start_time = time.time()
-        
         try:
             # Step 1: Extract configuration
             target_server = connection_config['target_server']
-            tunnel_config = connection_config.get('tunnel', {})
             commands = connection_config.get('commands', ['hostname', 'uptime'])
-            
             self._add_step(results, "Configuration validated", "success")
-            
-            if tunnel_config.get('enabled', False):
-                # Step 2: Establish tunnel to user's VPN-connected machine
-                self._add_step(results, "Establishing SSH tunnel to user's machine", "info")
-                
-                tunnel_client = paramiko.SSHClient()
-                tunnel_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                
-                tunnel_client.connect(
-                    hostname=tunnel_config['host'],
-                    port=tunnel_config.get('port', 22),
-                    username=tunnel_config['username'],
-                    password=tunnel_config['password'],
+            # Direct connection to private server via VPN
+            self._add_step(results, "Establishing SSH connection to private server via VPN", "info")
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            if target_server.get('auth_method') == 'key':
+                ssh_client.connect(
+                    hostname=target_server['host'],
+                    port=target_server.get('port', 22),
+                    username=target_server['username'],
+                    key_filename=target_server['key_file'],
                     timeout=10
                 )
-                
-                self._add_step(results, "SSH tunnel established successfully", "success")
-                
+            else:
+                ssh_client.connect(
+                    hostname=target_server['host'],
+                    port=target_server.get('port', 22),
+                    username=target_server['username'],
+                    password=target_server['password'],
+                    timeout=10
+                )
+            connection_time = time.time() - start_time
+            results['connection_time'] = round(connection_time, 2)
+            self._add_step(results, f"SSH connection established in {connection_time:.2f}s", "success")
+            # Step 5: Execute test commands
+            for command in commands:
+                self._add_step(results, f"Executing: {command}", "info")
+                stdin, stdout, stderr = ssh_client.exec_command(command)
+                output = stdout.read().decode('utf-8').strip()
+                error = stderr.read().decode('utf-8').strip()
+                results['commands_output'].append({
+                    'command': command,
+                    'output': output,
+                    'error': error
+                })
+            results['success'] = True
+            self._add_step(results, "All commands executed successfully", "success")
                 # Step 3: Create tunnel channel to target server
                 transport = tunnel_client.get_transport()
                 dest_addr = (target_server['host'], target_server['port'])
