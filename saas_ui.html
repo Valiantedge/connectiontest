@@ -251,7 +251,7 @@ df -h</textarea>
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
             try {
-                const response = await fetch('http://3.142.95.128:5000/api/tasks/add', {
+                const response = await fetch(`${API_BASE}/tasks/add`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
