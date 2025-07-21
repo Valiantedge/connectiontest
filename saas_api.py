@@ -120,11 +120,25 @@ def test_deployment():
         def run_deployment_test():
             global deployment_results
             tester = SaaSDeploymentTester()
-            result = tester.test_deployment_connectivity(config)
+            try:
+                result = tester.test_deployment_connectivity(config)
+            except Exception as e:
+                result = {
+                    'success': False,
+                    'error': f'Exception during deployment test: {str(e)}',
+                    'test_id': test_id,
+                    'timestamp': datetime.now().isoformat(),
+                    'steps': [],
+                    'deployment_output': []
+                }
             if result is None:
                 result = {
                     'success': False,
-                    'error': 'No result returned from deployment test'
+                    'error': 'No result returned from deployment test',
+                    'test_id': test_id,
+                    'timestamp': datetime.now().isoformat(),
+                    'steps': [],
+                    'deployment_output': []
                 }
             result['test_id'] = test_id
             if 'saas_type' in config:
