@@ -459,33 +459,7 @@
                 testBtn.disabled = false;
             }
             
-            try {
-            // Start SSH test (use /api/tasks/add endpoint)
-                const response = await fetch(`${API_BASE}/api/tasks/add`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(config)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentTestId = result.test_id;
-                    logMessage(`Test started with ID: ${result.test_id}`, 'info');
-                    pollTestResults(result.test_id);
-                } else {
-                    showError(`Failed to start test: ${result.error}`);
-                    loadingIndicator.classList.add('hidden');
-                    testBtn.disabled = false;
-                }
-                
-            } catch (error) {
-                showError(`Error starting test: ${error.message}`);
-                loadingIndicator.classList.add('hidden');
-                testBtn.disabled = false;
-            }
+            // ...existing code...
         }
         
         function buildDeploymentConfig() {
