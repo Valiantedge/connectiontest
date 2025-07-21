@@ -192,7 +192,6 @@ def test_ssh_connection():
             'message': 'Deployment test started',
             'status_url': f'/api/deployment/test/{test_id}'
         }), 202
-    return jsonify(result)
 
 @app.route('/api/ssh/test/<test_id>', methods=['DELETE'])
 def delete_test_result(test_id):
