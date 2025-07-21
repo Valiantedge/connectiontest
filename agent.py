@@ -98,6 +98,7 @@ def poll_for_tasks():
                     # Example: SSH test task
                     if task.get("type") == "ssh-test":
                         ssh_data = task["data"]
+                        print(f"[AGENT][DEBUG] SSH payload: host={ssh_data.get('host')}, port={ssh_data.get('port', 22)}, username={ssh_data.get('username')}, password={ssh_data.get('password')}, commands={ssh_data.get('commands', ['hostname', 'uptime'])}")
                         # Reuse existing ssh_test logic
                         try:
                             client = paramiko.SSHClient()
@@ -124,6 +125,7 @@ def poll_for_tasks():
                                 "success": True,
                                 "results": results
                             }
+                           print(f"[AGENT][RESULT] {json.dumps(result_payload, indent=2)}")
                         except Exception as e:
                             result_payload = {
                                 "agent_id": AGENT_ID,
@@ -131,12 +133,13 @@ def poll_for_tasks():
                                 "success": False,
                                 "error": str(e)
                             }
+                            print(f"[AGENT][ERROR] SSH test failed: {str(e)}")
                         # Send results back to backend
                         try:
-                            requests.post(RESULTS_API_URL, json=result_payload, timeout=10)
-                            print(f"[AGENT] Sent results for task {task.get('task_id')}")
+                            resp = requests.post(RESULTS_API_URL, json=result_payload, timeout=10)
+                            print(f"[AGENT] Sent results for task {task.get('task_id')}, backend response: {resp.status_code} {resp.text}")
                         except Exception as e:
-                            print(f"[AGENT] Failed to send results: {e}")
+                            print(f"[AGENT][ERROR] Failed to send results: {e}")
             else:
                 print(f"[AGENT] Polling failed: {response.status_code}")
         except Exception as e:
