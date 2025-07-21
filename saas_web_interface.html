@@ -406,42 +406,57 @@
             // Get deployment type
             const deploymentType = document.getElementById('deploymentType').value;
             let response, result;
-            if (deploymentType === 'shell' || deploymentType === 'ansible' || deploymentType === 'terraform') {
-                // Use deployment API for shell/ansible/terraform
-                const config = buildDeploymentConfig();
-                response = await fetch(`${API_BASE}/api/deployment/test`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(config)
-                });
-                result = await response.json();
-            } else {
-                // Use SSH test API for other types (or if you add an SSH option)
-                const agentId = "web-ui-agent";
-                const taskId = `webui-${Date.now()}`;
-                const config = {
-                    agent_id: agentId,
-                    task: {
-                        task_id: taskId,
-                        type: "ssh-test",
-                        data: {
-                            host: document.getElementById('targetHost').value,
-                            username: document.getElementById('targetUsername').value,
-                            password: document.getElementById('targetPassword').value,
-                            commands: ["hostname", "uptime"]
+            try {
+                let config;
+                if (deploymentType === 'shell' || deploymentType === 'ansible' || deploymentType === 'terraform') {
+                    // Use deployment API for shell/ansible/terraform
+                    config = buildDeploymentConfig();
+                    response = await fetch(`${API_BASE}/api/deployment/test`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(config)
+                    });
+                } else {
+                    // Use SSH test API for other types (or if you add an SSH option)
+                    const agentId = "web-ui-agent";
+                    const taskId = `webui-${Date.now()}`;
+                    config = {
+                        agent_id: agentId,
+                        task: {
+                            task_id: taskId,
+                            type: "ssh-test",
+                            data: {
+                                host: document.getElementById('targetHost').value,
+                                username: document.getElementById('targetUsername').value,
+                                password: document.getElementById('targetPassword').value,
+                                commands: ["hostname", "uptime"]
+                            }
                         }
-                    }
-                };
-                response = await fetch(`${API_BASE}/api/tasks/add`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(config)
-                });
+                    };
+                    response = await fetch(`${API_BASE}/api/tasks/add`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(config)
+                    });
+                }
                 result = await response.json();
+                if (result.success) {
+                    currentTestId = result.test_id;
+                    logMessage(`Test started with ID: ${result.test_id}`, 'info');
+                    pollTestResults(result.test_id);
+                } else {
+                    showError(`Failed to start test: ${result.error}`);
+                    loadingIndicator.classList.add('hidden');
+                    testBtn.disabled = false;
+                }
+            } catch (error) {
+                showError(`Error starting test: ${error.message}`);
+                loadingIndicator.classList.add('hidden');
+                testBtn.disabled = false;
             }
             
             try {
