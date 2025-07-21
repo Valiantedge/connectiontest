@@ -156,44 +156,42 @@ def test_ssh_connection():
     try:
         config = request.get_json()
         
+    try:
+        config = request.get_json()
         # Add test ID
         test_id = str(uuid.uuid4())
         config['test_id'] = test_id
-        
-
         # Start deployment test in background
         def run_deployment_test():
             tester = SaaSDeploymentTester()
             result = tester.test_deployment_connectivity(config)
-
             if result is None:
                 result = {
                     'success': False,
                     'error': 'No result returned from deployment test'
                 }
-
             result['test_id'] = test_id
             if 'saas_type' in config:
                 result['saas_type'] = config['saas_type']
-
             print(f"[{test_id}] Deployment Test Result:", result)
             # ✅ Ensure test_id is always injected into the result
             # Optional debug log to confirm what’s being stored
             print(f"[DEBUG] Final deployment result for test_id={test_id}: {result}")
             # Store result in shared dictionary
             deployment_results[test_id] = result
-
         thread = threading.Thread(target=run_deployment_test, daemon=True)
         thread.start()
-        
         return jsonify({
             'success': True,
             'test_id': test_id,
-            'message': 'Deployment test started',
-            'status_url': f'/api/deployment/test/{test_id}'
+            'message': 'SSH connection test started',
+            'status_url': f'/api/ssh/test/{test_id}'
         }), 202
-
-@app.route('/api/ssh/test/<test_id>', methods=['DELETE'])
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 def delete_test_result(test_id):
     """Delete a test result"""
     if test_id in test_results:
