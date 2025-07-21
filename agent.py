@@ -125,7 +125,7 @@ def poll_for_tasks():
                                 "success": True,
                                 "results": results
                             }
-                           print(f"[AGENT][RESULT] {json.dumps(result_payload, indent=2)}")
+                            print(f"[AGENT][RESULT] {json.dumps(result_payload, indent=2)}")
                         except Exception as e:
                             result_payload = {
                                 "agent_id": AGENT_ID,
