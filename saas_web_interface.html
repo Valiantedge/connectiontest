@@ -409,34 +409,68 @@
             try {
                 let config;
                 // Always use /api/tasks/add for all test types
-                if (deploymentType === 'shell' || deploymentType === 'ansible' || deploymentType === 'terraform') {
-                    const agentId = "59275c19-3a59-415d-8797-1c0f2ad80647";
-                    const taskId = `webui-${Date.now()}`;
-                    config = {
-                        agent_id: agentId,
-                        task: {
-                            task_id: taskId,
-                            type: deploymentType + "-test",
-                            data: buildDeploymentConfig()
-                        }
+                const agentId = "59275c19-3a59-415d-8797-1c0f2ad80647";
+                const taskId = `webui-${Date.now()}`;
+                let taskType, data;
+                if (deploymentType === 'shell') {
+                    taskType = 'shell-test';
+                    data = {
+                        host: document.getElementById('targetHost').value,
+                        port: parseInt(document.getElementById('targetPort').value),
+                        username: document.getElementById('targetUsername').value,
+                        password: document.getElementById('targetPassword').value,
+                        auth_method: 'password',
+                        script: document.getElementById('shellScript').value
+                    };
+                } else if (deploymentType === 'ansible') {
+                    taskType = 'ansible-test';
+                    data = {
+                        host: document.getElementById('targetHost').value,
+                        port: parseInt(document.getElementById('targetPort').value),
+                        username: document.getElementById('targetUsername').value,
+                        password: document.getElementById('targetPassword').value,
+                        auth_method: 'password',
+                        playbook: (() => {
+                            try {
+                                return JSON.parse(document.getElementById('ansiblePlaybook').value);
+                            } catch (e) {
+                                throw new Error('Invalid JSON in Ansible playbook');
+                            }
+                        })()
+                    };
+                } else if (deploymentType === 'terraform') {
+                    taskType = 'terraform-test';
+                    data = {
+                        host: document.getElementById('targetHost').value,
+                        port: parseInt(document.getElementById('targetPort').value),
+                        username: document.getElementById('targetUsername').value,
+                        password: document.getElementById('targetPassword').value,
+                        auth_method: 'password',
+                        config: (() => {
+                            try {
+                                return JSON.parse(document.getElementById('terraformConfigText').value);
+                            } catch (e) {
+                                throw new Error('Invalid JSON in Terraform configuration');
+                            }
+                        })()
                     };
                 } else {
-                    const agentId = "59275c19-3a59-415d-8797-1c0f2ad80647";
-                    const taskId = `webui-${Date.now()}`;
-                    config = {
-                        agent_id: agentId,
-                        task: {
-                            task_id: taskId,
-                            type: "ssh-test",
-                            data: {
-                                host: document.getElementById('targetHost').value,
-                                username: document.getElementById('targetUsername').value,
-                                password: document.getElementById('targetPassword').value,
-                                commands: ["hostname", "uptime"]
-                            }
-                        }
+                    taskType = 'ssh-test';
+                    data = {
+                        host: document.getElementById('targetHost').value,
+                        username: document.getElementById('targetUsername').value,
+                        password: document.getElementById('targetPassword').value,
+                        commands: ["hostname", "uptime"]
                     };
                 }
+                config = {
+                    agent_id: agentId,
+                    task: {
+                        task_id: taskId,
+                        type: taskType,
+                        data: data
+                    }
+                };
                 response = await fetch(`${API_BASE}/api/tasks/add`, {
                     method: 'POST',
                     headers: {
