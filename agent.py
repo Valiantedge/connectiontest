@@ -77,7 +77,6 @@ def deploy():
         print("Deploy response:", response)
         return jsonify(response)
 
-if __name__ == "__main__":
 
 # --- Agent polling loop for outbound communication ---
 import requests
