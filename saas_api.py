@@ -145,6 +145,8 @@ def test_ssh_connection():
         print("[DEBUG] Forwarding to agent:", payload)
         agent_url = "http://127.0.0.1:5001/ssh-test"  # Change to agent's IP if needed
         agent_response = requests.post(agent_url, json=payload, timeout=20)
+        print("[DEBUG] Agent response status:", agent_response.status_code)
+        print("[DEBUG] Agent response body:", agent_response.text)
         result = agent_response.json()
         return jsonify(result)
     except Exception as e:
