@@ -76,6 +76,7 @@ def test_deployment():
         def run_deployment_test():
             tester = SaaSDeploymentTester()
             result = tester.test_deployment_connectivity(config)
+            result['test_id'] = test_id
             deployment_results[test_id] = result
         
         thread = threading.Thread(target=run_deployment_test, daemon=True)
@@ -151,6 +152,7 @@ def test_ssh_connection():
         def run_test():
             tester = SaaSSSHConnectionTester()
             result = tester.test_ssh_connection(config)
+            result['test_id'] = test_id
             test_results[test_id] = result
         
         thread = threading.Thread(target=run_test, daemon=True)
