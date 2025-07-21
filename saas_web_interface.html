@@ -407,8 +407,8 @@
             const config = buildDeploymentConfig();
             
             try {
-                // Start deployment test
-                const response = await fetch(`${API_BASE}/api/deployment/test`, {
+            // Start SSH test (use /api/tasks/add endpoint)
+                const response = await fetch(`${API_BASE}/api/tasks/add`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

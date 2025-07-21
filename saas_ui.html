@@ -210,7 +210,9 @@ df -h</textarea>
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:5000/api';
+        // Set this to your backend API base URL. For production, use your public IP.
+        // Example: 'http://3.142.95.128:5000/api'
+        const API_BASE = 'http://3.142.95.128:5000/api';
         let currentTestId = null;
 
         function toggleTunnel() {
