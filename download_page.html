@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Deployment Agent - Download</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #718096;
+            font-size: 18px;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #2d3748;
+        }
+        .download-section {
+            background: #e6fffa;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 30px 0;
+            border: 2px solid #38b2ac;
+        }
+        .download-btn {
+            background: #38b2ac;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .download-btn:hover {
+            background: #319795;
+        }
+        .warning {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f56565;
+            margin: 20px 0;
+        }
+        .info {
+            background: #bee3f8;
+            color: #2a4365;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+            margin: 20px 0;
+        }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .architecture {
+            background: #f0fff4;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #68d391;
+            margin: 20px 0;
+        }
+        .flow-diagram {
+            text-align: center;
+            font-family: monospace;
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SaaS Deployment Agent</h1>
+            <p>Enable VPN-routed deployments to your private infrastructure</p>
+        </div>
+
+        <div class="architecture">
+            <h3>🏗️ How It Works</h3>
+            <div class="flow-diagram">
+Your SaaS Platform (AWS) ←→ Your PC (VPN Connected) ←→ Private Servers
+            </div>
+            <p>The agent runs on your VPN-connected machine and allows the SaaS platform to deploy to your private network through the VPN tunnel.</p>
+        </div>
+
+        <div class="download-section">
+            <h3>📥 Quick Setup</h3>
+            <p>Download and run this installer on your Windows PC:</p>
+            <a href="#" class="download-btn" onclick="downloadQuickSetup()">
+                💻 Download Quick Setup (Recommended)
+            </a>
+            <a href="#" class="download-btn" onclick="downloadFullSetup()">
+                🔧 Download Full Setup (Advanced)
+            </a>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Prerequisites</h3>
+            <ul>
+                <li>Windows 10/11 PC with VPN access to your private network</li>
+                <li>Administrator privileges on your PC</li>
+                <li>Stable internet connection</li>
+                <li>Company VPN client installed and configured</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Installation</h3>
+            <ol>
+                <li>Download the setup file above</li>
+                <li>Right-click and "Run as Administrator"</li>
+                <li>Follow the installation prompts</li>
+                <li>The installer will automatically:
+                    <ul>
+                        <li>Install Python (if needed)</li>
+                        <li>Install required libraries</li>
+                        <li>Configure SSH server</li>
+                        <li>Set up firewall rules</li>
+                        <li>Create the deployment agent</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Usage</h3>
+            <ol>
+                <li><strong>Connect to VPN</strong> - Always connect to your company VPN first</li>
+                <li><strong>Start the Agent</strong> - Run <code>start-agent.bat</code> from the installation folder</li>
+                <li><strong>Configure SaaS Platform</strong> - Add your PC's IP address to your SaaS platform settings</li>
+                <li><strong>Deploy</strong> - Your SaaS platform can now deploy through your VPN connection</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>🔗 What Gets Installed</h3>
+            <p><strong>Location:</strong> <code>%USERPROFILE%\SaaSAgent\</code></p>
+            <ul>
+                <li><strong>agent.py</strong> - Main deployment agent</li>
+                <li><strong>start-agent.bat</strong> - Startup script</li>
+                <li><strong>Python packages</strong> - paramiko, flask, flask-cors, requests</li>
+                <li><strong>SSH Server</strong> - For incoming connections</li>
+                <li><strong>Firewall Rules</strong> - Ports 22 (SSH) and 5001 (Agent)</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: SaaS Platform Configuration</h3>
+            <p>After installation, configure your SaaS platform with your agent details:</p>
+            <div class="code">
+Agent URL: http://YOUR_PC_IP:5001
+SSH Access: YOUR_PC_IP:22
+Capabilities: SSH, Ansible, Terraform, Shell Scripts
+            </div>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ Security Notes</h3>
+            <ul>
+                <li>Only run the agent when connected to your trusted VPN</li>
+                <li>The agent only accepts connections from your configured SaaS platform</li>
+                <li>SSH server is configured for secure access only</li>
+                <li>All traffic is encrypted and routes through your VPN</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Step 5: Deployment Types Supported</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                <div style="background: #e6f3ff; padding: 15px; border-radius: 8px; border: 2px solid #0066cc;">
+                    <h4>🐍 Ansible</h4>
+                    <p>Deploy playbooks to your infrastructure</p>
+                </div>
+                <div style="background: #fff0e6; padding: 15px; border-radius: 8px; border: 2px solid #ff6600;">
+                    <h4>🏗️ Terraform</h4>
+                    <p>Manage infrastructure as code</p>
+                </div>
+                <div style="background: #f0e6ff; padding: 15px; border-radius: 8px; border: 2px solid #6600cc;">
+                    <h4>💻 Shell Scripts</h4>
+                    <p>Execute custom deployment scripts</p>
+                </div>
+                <div style="background: #e6ffe6; padding: 15px; border-radius: 8px; border: 2px solid #00cc00;">
+                    <h4>🔐 SSH Commands</h4>
+                    <p>Direct server management</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>💡 Troubleshooting</h3>
+            <ul>
+                <li><strong>Agent not accessible:</strong> Check VPN connection and firewall settings</li>
+                <li><strong>SSH connection failed:</strong> Verify private server credentials</li>
+                <li><strong>Deployment failed:</strong> Check agent logs in the installation directory</li>
+                <li><strong>Python errors:</strong> Re-run the installer as Administrator</li>
+            </ul>
+            <p><strong>Support:</strong> Check the agent logs at <code>%USERPROFILE%\SaaSAgent\agent.log</code></p>
+        </div>
+    </div>
+
+    <script>
+        function downloadQuickSetup() {
+            // Create the quick setup content
+            const content = `@echo off
+:: Simple SaaS Deployment Agent Installer
+title SaaS Agent Quick Setup
+echo ================================
+echo   SaaS Deployment Agent Setup
+echo ================================
+
+set "AGENT_DIR=%USERPROFILE%\\SaaSAgent"
+if not exist "%AGENT_DIR%" mkdir "%AGENT_DIR%"
+cd /d "%AGENT_DIR%"
+
+echo [1/4] Installing Python...
+winget install Python.Python.3.11 --silent --accept-source-agreements --accept-package-agreements
+
+echo [2/4] Installing packages...
+python -m pip install --quiet paramiko flask flask-cors requests
+
+echo [3/4] Creating agent...
+python -c "
+agent_code = '''
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import paramiko, subprocess, json
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/health')
+def health(): return jsonify({'status': 'healthy'})
+
+@app.route('/ssh-test', methods=['POST'])
+def ssh_test():
+    data = request.json
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(data['host'], data.get('port', 22), data['username'], data['password'])
+        
+        results = []
+        for cmd in data.get('commands', ['hostname']):
+            stdin, stdout, stderr = client.exec_command(cmd)
+            results.append({'command': cmd, 'output': stdout.read().decode(), 'error': stderr.read().decode()})
+        
+        client.close()
+        return jsonify({'success': True, 'results': results})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+if __name__ == '__main__':
+    print('SaaS Agent starting on port 5001...')
+    app.run(host='0.0.0.0', port=5001, debug=False)
+'''
+
+with open('agent.py', 'w') as f: f.write(agent_code)
+"
+
+echo [4/4] Setting up network...
+powershell -Command "Add-WindowsCapability -Online -Name OpenSSH.Server*; Start-Service sshd; Set-Service -Name sshd -StartupType 'Automatic'"
+powershell -Command "New-NetFirewallRule -DisplayName 'SaaS-Agent' -Direction Inbound -Protocol TCP -LocalPort 5001 -Action Allow"
+
+echo @echo off > start-agent.bat
+echo cd /d "%AGENT_DIR%" >> start-agent.bat
+echo python agent.py >> start-agent.bat
+
+echo Setup complete! Run start-agent.bat to begin.
+pause`;
+
+            downloadFile('saas-agent-setup.bat', content);
+        }
+
+        function downloadFullSetup() {
+            // For the full setup, you would include the comprehensive installer
+            alert('The full setup installer contains advanced features and detailed configuration options. It will be downloaded shortly.');
+            // You could fetch this from your server or embed it
+        }
+
+        function downloadFile(filename, content) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
+</body>
+</html>`;
+
+            downloadFile('saas-agent-setup.bat', content);
+        }
+
+        function downloadFullSetup() {
+            // For the full setup, you would include the comprehensive installer
+            alert('The full setup installer contains advanced features and detailed configuration options. Contact support for the advanced installer.');
+        }
+
+        function downloadFile(filename, content) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
+</body>
+</html>

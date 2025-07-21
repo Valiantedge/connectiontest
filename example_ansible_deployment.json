@@ -1,0 +1,66 @@
+{
+  "test_id": "ansible_deployment_001",
+  "target_server": {
+    "host": "192.168.1.100",
+    "port": 22,
+    "username": "ubuntu",
+    "password": "server_password",
+    "auth_method": "password"
+  },
+  "tunnel": {
+    "enabled": true,
+    "host": "USER_LAPTOP_IP",
+    "port": 22,
+    "username": "USER_LAPTOP_USERNAME",
+    "password": "USER_LAPTOP_PASSWORD"
+  },
+  "deployment": {
+    "type": "ansible",
+    "playbook": {
+      "name": "Deploy Application",
+      "hosts": "target",
+      "tasks": [
+        {
+          "name": "Update apt cache",
+          "apt": {
+            "update_cache": "yes"
+          },
+          "become": "yes"
+        },
+        {
+          "name": "Install nginx",
+          "apt": {
+            "name": "nginx",
+            "state": "present"
+          },
+          "become": "yes"
+        },
+        {
+          "name": "Start nginx service",
+          "service": {
+            "name": "nginx",
+            "state": "started",
+            "enabled": "yes"
+          },
+          "become": "yes"
+        },
+        {
+          "name": "Check nginx status",
+          "shell": "systemctl status nginx",
+          "register": "nginx_status"
+        },
+        {
+          "name": "Display nginx status",
+          "debug": {
+            "var": "nginx_status.stdout"
+          }
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "user_id": "user123",
+    "deployment_type": "web_server",
+    "environment": "production"
+  }
+}

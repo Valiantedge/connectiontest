@@ -1,0 +1,26 @@
+{
+  "test_id": "shell_deployment_002",
+  "target_server": {
+    "host": "192.168.1.100",
+    "port": 22,
+    "username": "ubuntu",
+    "password": "server_password",
+    "auth_method": "password"
+  },
+  "tunnel": {
+    "enabled": true,
+    "host": "USER_LAPTOP_IP",
+    "port": 22,
+    "username": "USER_LAPTOP_USERNAME", 
+    "password": "USER_LAPTOP_PASSWORD"
+  },
+  "deployment": {
+    "type": "shell",
+    "script": "#!/bin/bash\n\necho \"Starting deployment through VPN tunnel...\"\necho \"Tunnel Host: $TUNNEL_HOST\"\necho \"Tunnel Port: $TUNNEL_PORT\"\necho \"Target Host: $TARGET_HOST\"\necho \"Target Port: $TARGET_PORT\"\n\n# Use SSH through tunnel to deploy\nif [ ! -z \"$TUNNEL_PORT\" ]; then\n    echo \"Using tunnel connection...\"\n    ssh -p $TUNNEL_PORT $TARGET_USER@$TUNNEL_HOST \"hostname && uptime && docker ps\"\nelse\n    echo \"Using direct connection...\"\n    ssh $TARGET_USER@$TARGET_HOST \"hostname && uptime && docker ps\"\nfi\n\necho \"Deployment completed!\""
+  },
+  "metadata": {
+    "user_id": "user456",
+    "deployment_type": "docker_app",
+    "environment": "staging"
+  }
+}

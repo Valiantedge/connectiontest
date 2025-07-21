@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS SSH Deployment Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .form-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e1e8ed;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            margin-left: 10px;
+        }
+        
+        .results-section {
+            margin-top: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+        }
+        
+        .results-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .log-output {
+            background: #2c3e50;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .status-info { background-color: #17a2b8; }
+        .status-warning { background-color: #ffc107; }
+        
+        .hidden { display: none; }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SaaS Deployment Tester</h1>
+            <p>Test Ansible, Terraform, and Shell script deployments through VPN connections</p>
+        </div>
+        
+        <div class="main-content">
+            <form id="deploymentForm">
+                <!-- Target Server Section -->
+                <div class="form-section">
+                    <h3>🎯 Target Server Configuration</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="targetHost">Server IP Address</label>
+                            <input type="text" id="targetHost" placeholder="192.168.1.100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="targetPort">SSH Port</label>
+                            <input type="number" id="targetPort" value="22" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="targetUsername">Username</label>
+                            <input type="text" id="targetUsername" placeholder="ubuntu" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="targetPassword">Password</label>
+                            <input type="password" id="targetPassword" placeholder="Enter password" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- VPN Tunnel Section -->
+                <div class="form-section">
+                    <h3>🔒 VPN Tunnel Configuration</h3>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enableTunnel" checked>
+                            <label for="enableTunnel">Use SSH tunnel through user's VPN-connected machine</label>
+                        </div>
+                    </div>
+                    <div id="tunnelConfig">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tunnelHost">User's Laptop IP</label>
+                                <input type="text" id="tunnelHost" placeholder="10.0.1.50" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tunnelPort">SSH Port</label>
+                                <input type="number" id="tunnelPort" value="22" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tunnelUsername">Laptop Username</label>
+                                <input type="text" id="tunnelUsername" placeholder="user" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tunnelPassword">Laptop Password</label>
+                                <input type="password" id="tunnelPassword" placeholder="Enter password" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Deployment Section -->
+                <div class="form-section">
+                    <h3>⚙️ Deployment Configuration</h3>
+                    <div class="form-group">
+                        <label for="deploymentType">Deployment Type</label>
+                        <select id="deploymentType" required>
+                            <option value="shell">Shell Script</option>
+                            <option value="ansible">Ansible Playbook</option>
+                            <option value="terraform">Terraform</option>
+                        </select>
+                    </div>
+                    
+                    <div id="shellConfig">
+                        <div class="form-group">
+                            <label for="shellScript">Shell Script</label>
+                            <textarea id="shellScript" rows="10" placeholder="#!/bin/bash&#10;echo 'Hello from deployment!'&#10;hostname&#10;uptime"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div id="ansibleConfig" class="hidden">
+                        <div class="form-group">
+                            <label for="ansiblePlaybook">Ansible Playbook (JSON format)</label>
+                            <textarea id="ansiblePlaybook" rows="10" placeholder='{"name": "Deploy App", "hosts": "target", "tasks": [{"name": "Install nginx", "apt": {"name": "nginx", "state": "present"}}]}'></textarea>
+                        </div>
+                    </div>
+                    
+                    <div id="terraformConfig" class="hidden">
+                        <div class="form-group">
+                            <label for="terraformConfig">Terraform Configuration (JSON format)</label>
+                            <textarea id="terraformConfigText" rows="10" placeholder='{"provider": {"aws": {"region": "us-west-2"}}, "resource": {"aws_instance": {"example": {"ami": "ami-12345", "instance_type": "t2.micro"}}}}'></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn" id="testBtn">🚀 Test Deployment</button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn">🧹 Clear Results</button>
+                </div>
+            </form>
+            
+            <!-- Results Section -->
+            <div id="results" class="results-section hidden">
+                <h3>📊 Test Results</h3>
+                <div id="statusAlert"></div>
+                <div id="loadingIndicator" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Testing deployment connectivity...</p>
+                </div>
+                <div id="logOutput" class="log-output"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get the current host and port for API calls
+        const API_BASE = window.location.origin;
+        
+        let currentTestId = null;
+        
+        // Form elements
+        const deploymentForm = document.getElementById('deploymentForm');
+        const enableTunnelCheckbox = document.getElementById('enableTunnel');
+        const tunnelConfig = document.getElementById('tunnelConfig');
+        const deploymentTypeSelect = document.getElementById('deploymentType');
+        const shellConfig = document.getElementById('shellConfig');
+        const ansibleConfig = document.getElementById('ansibleConfig');
+        const terraformConfig = document.getElementById('terraformConfig');
+        const testBtn = document.getElementById('testBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultsSection = document.getElementById('results');
+        const statusAlert = document.getElementById('statusAlert');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const logOutput = document.getElementById('logOutput');
+        
+        // Event listeners
+        enableTunnelCheckbox.addEventListener('change', toggleTunnelConfig);
+        deploymentTypeSelect.addEventListener('change', toggleDeploymentConfig);
+        deploymentForm.addEventListener('submit', startDeploymentTest);
+        clearBtn.addEventListener('click', clearResults);
+        
+        function toggleTunnelConfig() {
+            if (enableTunnelCheckbox.checked) {
+                tunnelConfig.style.display = 'block';
+                tunnelConfig.querySelectorAll('input').forEach(input => {
+                    input.required = true;
+                });
+            } else {
+                tunnelConfig.style.display = 'none';
+                tunnelConfig.querySelectorAll('input').forEach(input => {
+                    input.required = false;
+                });
+            }
+        }
+        
+        function toggleDeploymentConfig() {
+            // Hide all configs
+            shellConfig.classList.add('hidden');
+            ansibleConfig.classList.add('hidden');
+            terraformConfig.classList.add('hidden');
+            
+            // Show selected config
+            const selectedType = deploymentTypeSelect.value;
+            if (selectedType === 'shell') {
+                shellConfig.classList.remove('hidden');
+            } else if (selectedType === 'ansible') {
+                ansibleConfig.classList.remove('hidden');
+            } else if (selectedType === 'terraform') {
+                terraformConfig.classList.remove('hidden');
+            }
+        }
+        
+        async function startDeploymentTest(event) {
+            event.preventDefault();
+            
+            // Show results section and loading
+            resultsSection.classList.remove('hidden');
+            loadingIndicator.classList.remove('hidden');
+            logOutput.innerHTML = '';
+            statusAlert.innerHTML = '';
+            testBtn.disabled = true;
+            
+            // Build configuration
+            const config = buildDeploymentConfig();
+            
+            try {
+                // Start deployment test
+                const response = await fetch(`${API_BASE}/api/deployment/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTestId = result.test_id;
+                    logMessage(`Test started with ID: ${result.test_id}`, 'info');
+                    pollTestResults(result.test_id);
+                } else {
+                    showError(`Failed to start test: ${result.error}`);
+                    loadingIndicator.classList.add('hidden');
+                    testBtn.disabled = false;
+                }
+                
+            } catch (error) {
+                showError(`Error starting test: ${error.message}`);
+                loadingIndicator.classList.add('hidden');
+                testBtn.disabled = false;
+            }
+        }
+        
+        function buildDeploymentConfig() {
+            const config = {
+                target_server: {
+                    host: document.getElementById('targetHost').value,
+                    port: parseInt(document.getElementById('targetPort').value),
+                    username: document.getElementById('targetUsername').value,
+                    password: document.getElementById('targetPassword').value,
+                    auth_method: 'password'
+                }
+            };
+            
+            // Tunnel configuration
+            if (enableTunnelCheckbox.checked) {
+                config.tunnel = {
+                    enabled: true,
+                    host: document.getElementById('tunnelHost').value,
+                    port: parseInt(document.getElementById('tunnelPort').value),
+                    username: document.getElementById('tunnelUsername').value,
+                    password: document.getElementById('tunnelPassword').value
+                };
+            } else {
+                config.tunnel = { enabled: false };
+            }
+            
+            // Deployment configuration
+            const deploymentType = deploymentTypeSelect.value;
+            config.deployment = {
+                type: deploymentType
+            };
+            
+            if (deploymentType === 'shell') {
+                config.deployment.script = document.getElementById('shellScript').value;
+            } else if (deploymentType === 'ansible') {
+                try {
+                    config.deployment.playbook = JSON.parse(document.getElementById('ansiblePlaybook').value);
+                } catch (e) {
+                    throw new Error('Invalid JSON in Ansible playbook');
+                }
+            } else if (deploymentType === 'terraform') {
+                try {
+                    config.deployment.config = JSON.parse(document.getElementById('terraformConfigText').value);
+                } catch (e) {
+                    throw new Error('Invalid JSON in Terraform configuration');
+                }
+            }
+            
+            return config;
+        }
+        
+        async function pollTestResults(testId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/deployment/test/${testId}`);
+                const result = await response.json();
+                
+                if (response.status === 202) {
+                    // Still running, poll again
+                    setTimeout(() => pollTestResults(testId), 2000);
+                    return;
+                }
+                
+                // Test completed
+                loadingIndicator.classList.add('hidden');
+                testBtn.disabled = false;
+                
+                if (result.success) {
+                    showSuccess('Deployment test completed successfully!');
+                } else {
+                    showError(`Deployment test failed: ${result.error}`);
+                }
+                
+                // Display results
+                displayTestResults(result);
+                
+            } catch (error) {
+                loadingIndicator.classList.add('hidden');
+                testBtn.disabled = false;
+                showError(`Error getting test results: ${error.message}`);
+            }
+        }
+        
+        function displayTestResults(result) {
+            // Clear previous output
+            logOutput.innerHTML = '';
+            
+            // Display steps
+            if (result.steps && result.steps.length > 0) {
+                logMessage('=== Test Steps ===', 'info');
+                result.steps.forEach(step => {
+                    logMessage(`[${step.timestamp}] ${step.message}`, step.level);
+                });
+            }
+            
+            // Display deployment output
+            if (result.deployment_output && result.deployment_output.length > 0) {
+                logMessage('\n=== Deployment Output ===', 'info');
+                result.deployment_output.forEach(output => {
+                    if (output.command) {
+                        logMessage(`Command: ${output.command}`, 'info');
+                    }
+                    if (output.stdout) {
+                        logMessage(`STDOUT:\n${output.stdout}`, 'output');
+                    }
+                    if (output.stderr) {
+                        logMessage(`STDERR:\n${output.stderr}`, 'error');
+                    }
+                    logMessage('---', 'info');
+                });
+            }
+            
+            // Display summary
+            logMessage('\n=== Test Summary ===', 'info');
+            logMessage(`Test ID: ${result.test_id}`, 'info');
+            logMessage(`Status: ${result.success ? 'SUCCESS' : 'FAILED'}`, result.success ? 'success' : 'error');
+            logMessage(`Total Time: ${result.total_time}s`, 'info');
+            if (result.connection_time) {
+                logMessage(`Connection Time: ${result.connection_time}s`, 'info');
+            }
+        }
+        
+        function logMessage(message, level = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const indicator = getStatusIndicator(level);
+            logOutput.innerHTML += `${indicator}[${timestamp}] ${message}\n`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+        
+        function getStatusIndicator(level) {
+            const indicators = {
+                'success': '✅ ',
+                'error': '❌ ',
+                'info': 'ℹ️  ',
+                'warning': '⚠️  ',
+                'output': '📤 '
+            };
+            return indicators[level] || 'ℹ️  ';
+        }
+        
+        function showSuccess(message) {
+            statusAlert.innerHTML = `<div class="alert alert-success">${message}</div>`;
+        }
+        
+        function showError(message) {
+            statusAlert.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+        }
+        
+        function showInfo(message) {
+            statusAlert.innerHTML = `<div class="alert alert-info">${message}</div>`;
+        }
+        
+        function clearResults() {
+            resultsSection.classList.add('hidden');
+            statusAlert.innerHTML = '';
+            logOutput.innerHTML = '';
+            currentTestId = null;
+        }
+        
+        // Initialize the form
+        toggleTunnelConfig();
+        toggleDeploymentConfig();
+        
+        // Add some default script content
+        document.getElementById('shellScript').value = `#!/bin/bash
+
+echo "🚀 Starting deployment through VPN tunnel..."
+echo "Tunnel Host: $TUNNEL_HOST"
+echo "Tunnel Port: $TUNNEL_PORT" 
+echo "Target Host: $TARGET_HOST"
+echo "Target Port: $TARGET_PORT"
+
+# Check system info
+echo "=== System Information ==="
+hostname
+uptime
+whoami
+df -h
+
+# Check services
+echo "=== Services ==="
+systemctl status nginx || echo "Nginx not installed"
+docker --version || echo "Docker not installed"
+
+echo "✅ Deployment test completed!"`;
+    </script>
+</body>
+</html>

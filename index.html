@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Deployment Portal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .center-box {
+            background: rgba(255,255,255,0.97);
+            color: #2d3748;
+            padding: 48px 36px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            text-align: center;
+            max-width: 400px;
+        }
+        h1 {
+            margin-bottom: 18px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 16px 36px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 18px 0 0 0;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #667eea;
+        }
+        .desc {
+            color: #4a5568;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="center-box">
+        <h1>Welcome to SaaS Deployment Portal</h1>
+        <div class="desc">Download the agent or test your deployment connectivity.</div>
+        <a href="/download" class="btn" style="margin-bottom: 18px; display: inline-block;">Download Agent</a>
+        <div style="height: 18px;"></div>
+        <a href="/test" class="btn" style="background: #38b2ac;">Test Connection</a>
+    </div>
+</body>
+</html>

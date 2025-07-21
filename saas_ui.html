@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS SSH Connection Tester</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tunnel-config {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: none;
+        }
+        .step {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .step:last-child {
+            border-bottom: none;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .output { 
+            color: #6c757d; 
+            font-family: monospace;
+            background: #f1f3f4;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 SaaS SSH Connection Tester</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Test SSH connectivity to your private network servers through VPN
+        </p>
+
+        <form id="sshTestForm">
+            <div class="form-group">
+                <h3>Target Server Details</h3>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="serverHost">Server IP Address *</label>
+                    <input type="text" id="serverHost" placeholder="192.168.1.100" required>
+                </div>
+                <div class="form-group">
+                    <label for="serverPort">Port</label>
+                    <input type="number" id="serverPort" value="22" min="1" max="65535">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="serverUsername">Username *</label>
+                    <input type="text" id="serverUsername" placeholder="admin" required>
+                </div>
+                <div class="form-group">
+                    <label for="serverPassword">Password *</label>
+                    <input type="password" id="serverPassword" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enableTunnel" onchange="toggleTunnel()">
+                    <label for="enableTunnel">Use SSH Tunnel through VPN-connected machine</label>
+                </div>
+                
+                <div id="tunnelConfig" class="tunnel-config">
+                    <h4>VPN Machine Details</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tunnelHost">VPN Machine IP *</label>
+                            <input type="text" id="tunnelHost" placeholder="Your laptop/workstation IP">
+                        </div>
+                        <div class="form-group">
+                            <label for="tunnelPort">SSH Port</label>
+                            <input type="number" id="tunnelPort" value="22" min="1" max="65535">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tunnelUsername">Username *</label>
+                            <input type="text" id="tunnelUsername" placeholder="Your username">
+                        </div>
+                        <div class="form-group">
+                            <label for="tunnelPassword">Password *</label>
+                            <input type="password" id="tunnelPassword">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="commands">Commands to Execute (one per line)</label>
+                <textarea id="commands" rows="4" placeholder="hostname&#10;uptime&#10;whoami&#10;df -h">hostname
+uptime
+whoami
+df -h</textarea>
+            </div>
+
+            <div class="form-group">
+                <button type="submit">🚀 Test SSH Connection</button>
+                <button type="button" onclick="clearResults()">🗑️ Clear Results</button>
+            </div>
+        </form>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Testing SSH connection...</p>
+        </div>
+
+        <div id="results" class="results">
+            <h3>Test Results</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let currentTestId = null;
+
+        function toggleTunnel() {
+            const checkbox = document.getElementById('enableTunnel');
+            const config = document.getElementById('tunnelConfig');
+            config.style.display = checkbox.checked ? 'block' : 'none';
+            
+            // Make tunnel fields required when enabled
+            const tunnelInputs = config.querySelectorAll('input[required]');
+            tunnelInputs.forEach(input => {
+                input.required = checkbox.checked;
+            });
+        }
+
+        function clearResults() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('resultContent').innerHTML = '';
+        }
+
+        async function submitTest(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const enableTunnel = document.getElementById('enableTunnel').checked;
+            
+            // Build configuration object
+            const config = {
+                target_server: {
+                    host: document.getElementById('serverHost').value,
+                    port: parseInt(document.getElementById('serverPort').value),
+                    username: document.getElementById('serverUsername').value,
+                    password: document.getElementById('serverPassword').value,
+                    auth_method: 'password'
+                },
+                commands: document.getElementById('commands').value.split('\n').filter(cmd => cmd.trim()),
+                user_id: 'saas_ui_user_' + Date.now()
+            };
+            
+            if (enableTunnel) {
+                config.tunnel = {
+                    enabled: true,
+                    host: document.getElementById('tunnelHost').value,
+                    port: parseInt(document.getElementById('tunnelPort').value),
+                    username: document.getElementById('tunnelUsername').value,
+                    password: document.getElementById('tunnelPassword').value
+                };
+            } else {
+                config.tunnel = { enabled: false };
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            
+            try {
+                // Start the test
+                const response = await fetch(`${API_BASE}/ssh/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTestId = result.test_id;
+                    pollResults(result.test_id);
+                } else {
+                    showError('Failed to start test: ' + result.error);
+                }
+                
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        async function pollResults(testId) {
+            try {
+                const response = await fetch(`${API_BASE}/ssh/test/${testId}`);
+                const result = await response.json();
+                
+                if (response.status === 202) {
+                    // Still running, poll again
+                    setTimeout(() => pollResults(testId), 2000);
+                } else {
+                    // Test completed
+                    document.getElementById('loading').style.display = 'none';
+                    showResults(result);
+                }
+                
+            } catch (error) {
+                showError('Error polling results: ' + error.message);
+            }
+        }
+
+        function showResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultContent');
+            
+            let html = `
+                <div class="step ${result.success ? 'success' : 'error'}">
+                    <strong>Test Result: ${result.success ? '✅ SUCCESS' : '❌ FAILED'}</strong>
+                </div>
+                <div class="step info">
+                    <strong>Test ID:</strong> ${result.test_id}
+                </div>
+                <div class="step info">
+                    <strong>Timestamp:</strong> ${new Date(result.timestamp).toLocaleString()}
+                </div>
+            `;
+            
+            if (result.connection_time) {
+                html += `<div class="step info"><strong>Connection Time:</strong> ${result.connection_time}s</div>`;
+            }
+            
+            if (result.error) {
+                html += `<div class="step error"><strong>Error:</strong> ${result.error}</div>`;
+            }
+            
+            // Show steps
+            if (result.steps && result.steps.length > 0) {
+                html += '<h4>Connection Steps:</h4>';
+                result.steps.forEach(step => {
+                    html += `<div class="step ${step.level}">${step.message}</div>`;
+                });
+            }
+            
+            // Show command outputs
+            if (result.commands_output && result.commands_output.length > 0) {
+                html += '<h4>Command Outputs:</h4>';
+                result.commands_output.forEach(cmd => {
+                    html += `
+                        <div class="step">
+                            <strong>Command:</strong> ${cmd.command}
+                        </div>
+                        <div class="step output">${cmd.output || 'No output'}</div>
+                    `;
+                    if (cmd.error) {
+                        html += `<div class="step error">Error: ${cmd.error}</div>`;
+                    }
+                });
+            }
+            
+            contentDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultContent');
+            
+            contentDiv.innerHTML = `<div class="step error"><strong>Error:</strong> ${message}</div>`;
+            resultsDiv.style.display = 'block';
+        }
+
+        // Set up form submission
+        document.getElementById('sshTestForm').addEventListener('submit', submitTest);
+    </script>
+</body>
+</html>
