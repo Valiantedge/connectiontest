@@ -77,11 +77,17 @@ def test_deployment():
             tester = SaaSDeploymentTester()
             result = tester.test_deployment_connectivity(config)
 
-           if result is None:
-           result = {
-            'success': False,
-            'error': 'No result returned from deployment test'
-         }
+            if result is None:
+                result = {
+                    'success': False,
+                    'error': 'No result returned from deployment test'
+                }
+
+            result['test_id'] = test_id
+            if 'saas_type' in config:
+                result['saas_type'] = config['saas_type']
+
+            print(f"[{test_id}] Deployment Test Result:", result)
 
     # ✅ Ensure test_id is always injected into the result
     result['test_id'] = test_id
