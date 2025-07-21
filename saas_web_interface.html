@@ -403,8 +403,22 @@
             statusAlert.innerHTML = '';
             testBtn.disabled = true;
             
-            // Build configuration
-            const config = buildDeploymentConfig();
+            // Build configuration for SSH test (backend expects agent_id, task, etc.)
+            const agentId = "web-ui-agent"; // You can set this to any unique string or get from user
+            const taskId = `webui-${Date.now()}`;
+            const config = {
+                agent_id: agentId,
+                task: {
+                    task_id: taskId,
+                    type: "ssh-test",
+                    data: {
+                        host: document.getElementById('targetHost').value,
+                        username: document.getElementById('targetUsername').value,
+                        password: document.getElementById('targetPassword').value,
+                        commands: ["hostname", "uptime"]
+                    }
+                }
+            };
             
             try {
             // Start SSH test (use /api/tasks/add endpoint)
