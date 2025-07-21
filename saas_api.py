@@ -168,41 +168,38 @@ def test_ssh_connection():
         test_id = str(uuid.uuid4())
         config['test_id'] = test_id
         
-        # Start test in background
-        def run_test():
-            tester = SaaSSSHConnectionTester()
-            result = tester.test_ssh_connection(config)
+
+        # Start deployment test in background
+        def run_deployment_test():
+            tester = SaaSDeploymentTester()
+            result = tester.test_deployment_connectivity(config)
+
+            if result is None:
+                result = {
+                    'success': False,
+                    'error': 'No result returned from deployment test'
+                }
+
             result['test_id'] = test_id
-            test_results[test_id] = result
-        
-        thread = threading.Thread(target=run_test, daemon=True)
+            if 'saas_type' in config:
+                result['saas_type'] = config['saas_type']
+
+            print(f"[{test_id}] Deployment Test Result:", result)
+            # ✅ Ensure test_id is always injected into the result
+            # Optional debug log to confirm what’s being stored
+            print(f"[DEBUG] Final deployment result for test_id={test_id}: {result}")
+            # Store result in shared dictionary
+            deployment_results[test_id] = result
+
+        thread = threading.Thread(target=run_deployment_test, daemon=True)
         thread.start()
         
         return jsonify({
             'success': True,
             'test_id': test_id,
-            'message': 'SSH connection test started',
-            'status_url': f'/api/ssh/test/{test_id}'
+            'message': 'Deployment test started',
+            'status_url': f'/api/deployment/test/{test_id}'
         }), 202
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 400
-
-@app.route('/api/ssh/test/<test_id>', methods=['GET'])
-def get_test_result(test_id):
-    """Get the result of a specific test"""
-    
-    if test_id not in test_results:
-        return jsonify({
-            'success': False,
-            'error': 'Test not found or still running',
-            'status': 'running'
-        }), 202
-    
-    result = test_results[test_id]
     return jsonify(result)
 
 @app.route('/api/ssh/test/<test_id>', methods=['DELETE'])
