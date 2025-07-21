@@ -199,6 +199,7 @@ def test_ssh_connection():
             'success': False,
             'error': str(e)
         }), 400
+
 def delete_test_result(test_id):
     """Delete a test result"""
     if test_id in test_results:
