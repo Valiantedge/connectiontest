@@ -30,28 +30,6 @@ class SaaSSSHConnectionTester:
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.StreamHandler(),
-                logging.FileHandler('ssh_connection_tests.log')
-            ]
-        )
-        self.logger = logging.getLogger(__name__)
-    
-    def test_ssh_connection(self, connection_config: Dict) -> Dict:
-        """
-        Test SSH connection with the provided configuration
-        
-        Args:
-            connection_config: Dictionary containing connection parameters
-            
-        Returns:
-            Dictionary with test results
-        """
-        try:
-            # Step 1: Extract configuration
-            target_server = connection_config['target_server']
-            commands = connection_config.get('commands', ['hostname', 'uptime'])
-            self._add_step(results, "Configuration validated", "success")
             # Direct connection to private server via VPN
             self._add_step(results, "Establishing SSH connection to private server via VPN", "info")
             ssh_client = paramiko.SSHClient()
@@ -72,26 +50,6 @@ class SaaSSSHConnectionTester:
                     password=target_server['password'],
                     timeout=10
                 )
-            connection_time = time.time() - start_time
-            results['connection_time'] = round(connection_time, 2)
-            self._add_step(results, f"SSH connection established in {connection_time:.2f}s", "success")
-            # Step 5: Execute test commands
-            for command in commands:
-                self._add_step(results, f"Executing: {command}", "info")
-                stdin, stdout, stderr = ssh_client.exec_command(command)
-                output = stdout.read().decode('utf-8').strip()
-                error = stderr.read().decode('utf-8').strip()
-                results['commands_output'].append({
-                    'command': command,
-                    'output': output,
-                    'error': error
-                })
-            results['success'] = True
-            self._add_step(results, "All commands executed successfully", "success")
-                # Step 3: Create tunnel channel to target server
-                transport = tunnel_client.get_transport()
-                dest_addr = (target_server['host'], target_server['port'])
-                local_addr = ('127.0.0.1', 0)
                 
                 self._add_step(results, f"Creating tunnel channel to {dest_addr[0]}:{dest_addr[1]}", "info")
                 channel = transport.open_channel("direct-tcpip", dest_addr, local_addr)
@@ -193,8 +151,9 @@ class SaaSSSHConnectionTester:
             # Cleanup connections
             if ssh_client:
                 ssh_client.close()
-            if tunnel_client:
-                tunnel_client.close()
+            # Cleanup connections
+            if ssh_client:
+                ssh_client.close()
             
             self.logger.info(f"Test {test_id} completed. Success: {results['success']}")
         
