@@ -113,6 +113,7 @@ def test_deployment():
         
         # Start deployment test in background
         def run_deployment_test():
+            global deployment_results
             tester = SaaSDeploymentTester()
             result = tester.test_deployment_connectivity(config)
             if result is None:
@@ -146,19 +147,20 @@ def test_deployment():
 def get_deployment_result(test_id):
     """Get the result of a specific deployment test"""
     
+    global deployment_results
     if test_id not in deployment_results:
         return jsonify({
             'success': False,
             'error': 'Test not found or still running',
             'status': 'running'
         }), 202
-    
     result = deployment_results[test_id]
     return jsonify(result)
 
 @app.route('/api/deployment/test/<test_id>', methods=['DELETE'])
 def delete_deployment_result(test_id):
     """Delete a deployment test result"""
+    global deployment_results
     if test_id in deployment_results:
         del deployment_results[test_id]
     
