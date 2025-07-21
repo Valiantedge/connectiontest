@@ -336,8 +336,8 @@
     </div>
 
     <script>
-        // Get the current host and port for API calls
-        const API_BASE = window.location.origin;
+        // Set API_BASE to the correct backend URL
+        const API_BASE = "http://3.142.95.128:5000";
         
         let currentTestId = null;
         
@@ -420,7 +420,7 @@
                     });
                 } else {
                     // Use SSH test API for other types (or if you add an SSH option)
-                    const agentId = "web-ui-agent";
+                    const agentId = "59275c19-3a59-415d-8797-1c0f2ad80647";
                     const taskId = `webui-${Date.now()}`;
                     config = {
                         agent_id: agentId,
@@ -458,7 +458,6 @@
                 loadingIndicator.classList.add('hidden');
                 testBtn.disabled = false;
             }
-            
             // ...existing code...
         }
         
