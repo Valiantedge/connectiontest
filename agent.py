@@ -20,6 +20,7 @@ def health():
 @app.route("/ssh-test", methods=["POST"])
 def ssh_test():
     data = request.json
+    print("[DEBUG] Received payload:", data)
     try:
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
