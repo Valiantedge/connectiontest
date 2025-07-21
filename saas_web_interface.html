@@ -403,22 +403,46 @@
             statusAlert.innerHTML = '';
             testBtn.disabled = true;
             
-            // Build configuration for SSH test (backend expects agent_id, task, etc.)
-            const agentId = "web-ui-agent"; // You can set this to any unique string or get from user
-            const taskId = `webui-${Date.now()}`;
-            const config = {
-                agent_id: agentId,
-                task: {
-                    task_id: taskId,
-                    type: "ssh-test",
-                    data: {
-                        host: document.getElementById('targetHost').value,
-                        username: document.getElementById('targetUsername').value,
-                        password: document.getElementById('targetPassword').value,
-                        commands: ["hostname", "uptime"]
+            // Get deployment type
+            const deploymentType = document.getElementById('deploymentType').value;
+            let response, result;
+            if (deploymentType === 'shell' || deploymentType === 'ansible' || deploymentType === 'terraform') {
+                // Use deployment API for shell/ansible/terraform
+                const config = buildDeploymentConfig();
+                response = await fetch(`${API_BASE}/api/deployment/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                result = await response.json();
+            } else {
+                // Use SSH test API for other types (or if you add an SSH option)
+                const agentId = "web-ui-agent";
+                const taskId = `webui-${Date.now()}`;
+                const config = {
+                    agent_id: agentId,
+                    task: {
+                        task_id: taskId,
+                        type: "ssh-test",
+                        data: {
+                            host: document.getElementById('targetHost').value,
+                            username: document.getElementById('targetUsername').value,
+                            password: document.getElementById('targetPassword').value,
+                            commands: ["hostname", "uptime"]
+                        }
                     }
-                }
-            };
+                };
+                response = await fetch(`${API_BASE}/api/tasks/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                result = await response.json();
+            }
             
             try {
             // Start SSH test (use /api/tasks/add endpoint)
