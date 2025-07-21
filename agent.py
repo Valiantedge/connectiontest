@@ -143,6 +143,16 @@ def poll_for_tasks():
             print(f"[AGENT] Polling error: {e}")
         time.sleep(10)  # Poll every 10 seconds
 
+import threading
+
+def run_flask_server():
+    print("[AGENT] Starting Flask server on port 5001...")
+    app.run(host="0.0.0.0", port=5001, debug=False)
+
 if __name__ == "__main__":
-    print("SaaS Deployment Agent starting in polling mode...")
+    print("SaaS Deployment Agent starting: Flask server + polling mode...")
+    # Start Flask server in a background thread
+    flask_thread = threading.Thread(target=run_flask_server, daemon=True)
+    flask_thread.start()
+    # Start polling loop in main thread
     poll_for_tasks()
