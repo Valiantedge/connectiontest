@@ -1,3 +1,48 @@
+# --- Agent polling endpoints ---
+# In-memory task queue for demo purposes
+agent_tasks = {}
+agent_results = {}
+
+@app.route('/api/tasks', methods=['GET'])
+def get_agent_tasks():
+    """Agent polls for tasks"""
+    agent_id = request.args.get('agent_id')
+    if not agent_id:
+        return jsonify({'success': False, 'error': 'Missing agent_id'}), 400
+    tasks = agent_tasks.get(agent_id, [])
+    return jsonify({'success': True, 'tasks': tasks})
+
+@app.route('/api/results', methods=['POST'])
+def receive_agent_results():
+    """Agent posts results here"""
+    data = request.get_json()
+    agent_id = data.get('agent_id')
+    task_id = data.get('task_id')
+    if not agent_id or not task_id:
+        return jsonify({'success': False, 'error': 'Missing agent_id or task_id'}), 400
+    agent_results.setdefault(agent_id, {})[task_id] = data
+    print(f"[RESULT] Received from agent {agent_id} for task {task_id}: {data}")
+    return jsonify({'success': True})
+
+# Example endpoint to add a task for an agent (for demo/testing)
+@app.route('/api/tasks/add', methods=['POST'])
+def add_agent_task():
+    """Add a new task for an agent"""
+    data = request.get_json()
+    agent_id = data.get('agent_id')
+    task = data.get('task')
+    if not agent_id or not task:
+        return jsonify({'success': False, 'error': 'Missing agent_id or task'}), 400
+    agent_tasks.setdefault(agent_id, []).append(task)
+    return jsonify({'success': True, 'message': 'Task added'})
+
+# Example endpoint to get results for an agent (for demo/testing)
+@app.route('/api/results/<agent_id>/<task_id>', methods=['GET'])
+def get_agent_result(agent_id, task_id):
+    result = agent_results.get(agent_id, {}).get(task_id)
+    if not result:
+        return jsonify({'success': False, 'error': 'Result not found'}), 404
+    return jsonify({'success': True, 'result': result})
 """
 SaaS SSH Connection Testing API
 Flask API endpoint for your SaaS platform
@@ -143,7 +188,7 @@ def test_ssh_connection():
             "commands": config.get("commands", ["hostname", "uptime"])
         }
         print("[DEBUG] Forwarding to agent:", payload)
-        agent_url = "http://127.0.0.1:5001/ssh-test"  # Change to agent's IP if needed
+        agent_url = "http://3.142.95.128:5000/ssh-test"  # Updated to customer backend agent
         agent_response = requests.post(agent_url, json=payload, timeout=20)
         print("[DEBUG] Agent response status:", agent_response.status_code)
         print("[DEBUG] Agent response body:", agent_response.text)

@@ -78,6 +78,72 @@ def deploy():
         return jsonify(response)
 
 if __name__ == "__main__":
-    print("SaaS Deployment Agent starting on port 5001...")
-    print("Your SaaS platform can now connect to this machine for deployments")
-    app.run(host="0.0.0.0", port=5001, debug=False)
+
+# --- Agent polling loop for outbound communication ---
+import requests
+import time
+
+BACKEND_API_URL = "http://3.142.95.128:5000/api/tasks"  # Set to your backend public API URL
+RESULTS_API_URL = "http://3.142.95.128:5000/api/results"  # Set to your backend public API URL
+AGENT_ID = str(uuid.uuid4())
+
+def poll_for_tasks():
+    print("[AGENT] Starting polling loop...")
+    while True:
+        try:
+            response = requests.get(f"{BACKEND_API_URL}?agent_id={AGENT_ID}", timeout=10)
+            if response.status_code == 200:
+                tasks = response.json().get("tasks", [])
+                for task in tasks:
+                    print(f"[AGENT] Received task: {task}")
+                    # Example: SSH test task
+                    if task.get("type") == "ssh-test":
+                        ssh_data = task["data"]
+                        # Reuse existing ssh_test logic
+                        try:
+                            client = paramiko.SSHClient()
+                            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                            client.connect(
+                                hostname=ssh_data["host"],
+                                port=ssh_data.get("port", 22),
+                                username=ssh_data["username"],
+                                password=ssh_data["password"],
+                                timeout=10
+                            )
+                            results = []
+                            for cmd in ssh_data.get("commands", ["hostname", "uptime"]):
+                                stdin, stdout, stderr = client.exec_command(cmd)
+                                results.append({
+                                    "command": cmd,
+                                    "output": stdout.read().decode(),
+                                    "error": stderr.read().decode()
+                                })
+                            client.close()
+                            result_payload = {
+                                "agent_id": AGENT_ID,
+                                "task_id": task.get("task_id"),
+                                "success": True,
+                                "results": results
+                            }
+                        except Exception as e:
+                            result_payload = {
+                                "agent_id": AGENT_ID,
+                                "task_id": task.get("task_id"),
+                                "success": False,
+                                "error": str(e)
+                            }
+                        # Send results back to backend
+                        try:
+                            requests.post(RESULTS_API_URL, json=result_payload, timeout=10)
+                            print(f"[AGENT] Sent results for task {task.get('task_id')}")
+                        except Exception as e:
+                            print(f"[AGENT] Failed to send results: {e}")
+            else:
+                print(f"[AGENT] Polling failed: {response.status_code}")
+        except Exception as e:
+            print(f"[AGENT] Polling error: {e}")
+        time.sleep(10)  # Poll every 10 seconds
+
+if __name__ == "__main__":
+    print("SaaS Deployment Agent starting in polling mode...")
+    poll_for_tasks()
