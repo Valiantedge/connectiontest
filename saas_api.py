@@ -76,8 +76,22 @@ def test_deployment():
         def run_deployment_test():
             tester = SaaSDeploymentTester()
             result = tester.test_deployment_connectivity(config)
-            result['test_id'] = test_id
-            deployment_results[test_id] = result
+
+           if result is None:
+           result = {
+            'success': False,
+            'error': 'No result returned from deployment test'
+         }
+
+    # ✅ Ensure test_id is always injected into the result
+    result['test_id'] = test_id
+
+    # Optional debug log to confirm what’s being stored
+    print(f"[DEBUG] Final deployment result for test_id={test_id}: {result}")
+
+    # Store result in shared dictionary
+    deployment_results[test_id] = result
+
         
         thread = threading.Thread(target=run_deployment_test, daemon=True)
         thread.start()
