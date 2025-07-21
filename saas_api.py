@@ -155,9 +155,6 @@ def test_ssh_connection():
     """
     try:
         config = request.get_json()
-        
-    try:
-        config = request.get_json()
         # Add test ID
         test_id = str(uuid.uuid4())
         config['test_id'] = test_id
