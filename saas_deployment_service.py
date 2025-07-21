@@ -448,13 +448,13 @@ export TARGET_PORT={config['target_server']['port']}
             'level': level
         }
         results['steps'].append(step)
-        
+        test_id = results.get('test_id', 'unknown')
         if level == 'error':
-            self.logger.error(f"{results['test_id']}: {message}")
+            self.logger.error(f"{test_id}: {message}")
         elif level == 'success':
-            self.logger.info(f"{results['test_id']}: ✓ {message}")
+            self.logger.info(f"{test_id}: ✓ {message}")
         else:
-            self.logger.info(f"{results['test_id']}: {message}")
+            self.logger.info(f"{test_id}: {message}")
 
 # Main function for SaaS integration
 def test_deployment(deployment_config: Dict) -> Dict:
