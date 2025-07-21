@@ -1,3 +1,21 @@
+"""
+SaaS SSH Connection Testing API
+Flask API endpoint for your SaaS platform
+"""
+
+from flask import Flask, send_from_directory, jsonify, request
+from flask_cors import CORS
+import json
+import threading
+import uuid
+from datetime import datetime
+from saas_ssh_tester import SaaSSSHConnectionTester
+from saas_deployment_service import SaaSDeploymentTester
+import os
+
+app = Flask(__name__)
+CORS(app)  # Enable CORS for frontend access
+
 # --- Agent polling endpoints ---
 # In-memory task queue for demo purposes
 agent_tasks = {}
@@ -43,31 +61,7 @@ def get_agent_result(agent_id, task_id):
     if not result:
         return jsonify({'success': False, 'error': 'Result not found'}), 404
     return jsonify({'success': True, 'result': result})
-"""
-SaaS SSH Connection Testing API
-Flask API endpoint for your SaaS platform
-"""
 
-from flask import Flask, send_from_directory, jsonify, request
-from flask_cors import CORS
-import json
-import threading
-import uuid
-from datetime import datetime
-from saas_ssh_tester import SaaSSSHConnectionTester
-from saas_deployment_service import SaaSDeploymentTester
-import os
-
-import os
-app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend access
-
-# Store test results temporarily (use Redis/Database in production)
-test_results = {}
-deployment_results = {}
-
-
-# Serve index.html at root
 @app.route("/")
 def root():
     return send_from_directory(".", "index.html")
