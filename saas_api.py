@@ -89,14 +89,6 @@ def test_deployment():
 
             print(f"[{test_id}] Deployment Test Result:", result)
 
-    # ✅ Ensure test_id is always injected into the result
-    result['test_id'] = test_id
-
-    # Optional debug log to confirm what’s being stored
-    print(f"[DEBUG] Final deployment result for test_id={test_id}: {result}")
-
-    # Store result in shared dictionary
-    deployment_results[test_id] = result
 
         
         thread = threading.Thread(target=run_deployment_test, daemon=True)
