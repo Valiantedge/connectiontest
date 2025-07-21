@@ -87,12 +87,16 @@ RESULTS_API_URL = "http://3.142.95.128:5000/api/results"  # Set to your backend 
 AGENT_ID = str(uuid.uuid4())
 
 def poll_for_tasks():
-    print("[AGENT] Starting polling loop...")
+    print(f"[AGENT] Starting polling loop... AGENT_ID: {AGENT_ID}")
     while True:
         try:
+            print(f"[AGENT] Polling backend for tasks with AGENT_ID: {AGENT_ID}")
             response = requests.get(f"{BACKEND_API_URL}?agent_id={AGENT_ID}", timeout=10)
+            print(f"[AGENT] Backend response: {response.status_code} {response.text}")
             if response.status_code == 200:
                 tasks = response.json().get("tasks", [])
+                if not tasks:
+                    print("[AGENT] No tasks received from backend.")
                 for task in tasks:
                     print(f"[AGENT] Received task: {task}")
                     # Example: SSH test task
