@@ -129,57 +129,24 @@ def delete_deployment_result(test_id):
 def test_ssh_connection():
     """
     API endpoint to test SSH connection
-    
-    Expected JSON payload:
-    {
-        "target_server": {
-            "host": "192.168.1.100",
-            "port": 22,
-            "username": "admin", 
-            "password": "password",
-            "auth_method": "password"
-        },
-        "tunnel": {
-            "enabled": true,
-            "host": "user_laptop_ip",
-            "username": "user_laptop_username",
-            "password": "user_laptop_password"
-        },
-        "commands": ["hostname", "uptime"],
-        "user_id": "user123"
-    }
+    Forwards the request to the agent and returns the agent's result.
     """
+    import requests
     try:
         config = request.get_json()
-        # Add test ID
-        test_id = str(uuid.uuid4())
-        config['test_id'] = test_id
-        # Start deployment test in background
-        def run_deployment_test():
-            tester = SaaSDeploymentTester()
-            result = tester.test_deployment_connectivity(config)
-            if result is None:
-                result = {
-                    'success': False,
-                    'error': 'No result returned from deployment test'
-                }
-            result['test_id'] = test_id
-            if 'saas_type' in config:
-                result['saas_type'] = config['saas_type']
-            print(f"[{test_id}] Deployment Test Result:", result)
-            # ✅ Ensure test_id is always injected into the result
-            # Optional debug log to confirm what’s being stored
-            print(f"[DEBUG] Final deployment result for test_id={test_id}: {result}")
-            # Store result in shared dictionary
-            deployment_results[test_id] = result
-        thread = threading.Thread(target=run_deployment_test, daemon=True)
-        thread.start()
-        return jsonify({
-            'success': True,
-            'test_id': test_id,
-            'message': 'SSH connection test started',
-            'status_url': f'/api/ssh/test/{test_id}'
-        }), 202
+        # Prepare payload for agent
+        payload = {
+            "host": config["target_server"]["host"],
+            "port": config["target_server"].get("port", 22),
+            "username": config["target_server"]["username"],
+            "password": config["target_server"].get("password", ""),
+            "commands": config.get("commands", ["hostname", "uptime"])
+        }
+        print("[DEBUG] Forwarding to agent:", payload)
+        agent_url = "http://127.0.0.1:5001/ssh-test"  # Change to agent's IP if needed
+        agent_response = requests.post(agent_url, json=payload, timeout=20)
+        result = agent_response.json()
+        return jsonify(result)
     except Exception as e:
         return jsonify({
             'success': False,
