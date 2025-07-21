@@ -408,18 +408,19 @@
             let response, result;
             try {
                 let config;
+                // Always use /api/tasks/add for all test types
                 if (deploymentType === 'shell' || deploymentType === 'ansible' || deploymentType === 'terraform') {
-                    // Use deployment API for shell/ansible/terraform
-                    config = buildDeploymentConfig();
-                    response = await fetch(`${API_BASE}/api/deployment/test`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(config)
-                    });
+                    const agentId = "59275c19-3a59-415d-8797-1c0f2ad80647";
+                    const taskId = `webui-${Date.now()}`;
+                    config = {
+                        agent_id: agentId,
+                        task: {
+                            task_id: taskId,
+                            type: deploymentType + "-test",
+                            data: buildDeploymentConfig()
+                        }
+                    };
                 } else {
-                    // Use SSH test API for other types (or if you add an SSH option)
                     const agentId = "59275c19-3a59-415d-8797-1c0f2ad80647";
                     const taskId = `webui-${Date.now()}`;
                     config = {
@@ -435,14 +436,14 @@
                             }
                         }
                     };
-                    response = await fetch(`${API_BASE}/api/tasks/add`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(config)
-                    });
                 }
+                response = await fetch(`${API_BASE}/api/tasks/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
                 result = await response.json();
                 if (result.success) {
                     currentTestId = result.test_id;
