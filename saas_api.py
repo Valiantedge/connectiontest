@@ -76,24 +76,20 @@ def test_deployment():
         def run_deployment_test():
             tester = SaaSDeploymentTester()
             result = tester.test_deployment_connectivity(config)
-
             if result is None:
                 result = {
                     'success': False,
                     'error': 'No result returned from deployment test'
                 }
-
             result['test_id'] = test_id
             if 'saas_type' in config:
                 result['saas_type'] = config['saas_type']
-
             print(f"[{test_id}] Deployment Test Result:", result)
+            # Store result so polling endpoint can retrieve it
+            deployment_results[test_id] = result
 
-
-        
         thread = threading.Thread(target=run_deployment_test, daemon=True)
         thread.start()
-        
         return jsonify({
             'success': True,
             'test_id': test_id,
