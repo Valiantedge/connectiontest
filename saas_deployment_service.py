@@ -47,11 +47,9 @@ class SaaSDeploymentTester:
         
         Args:
             config: Deployment configuration
-            
         Returns:
             Test results with deployment status
         """
-        
         test_id = config.get('test_id', f"deploy_{int(time.time())}")
         results = {
             'success': False,
@@ -63,44 +61,34 @@ class SaaSDeploymentTester:
             'connection_time': None,
             'total_time': None
         }
-        
         start_time = time.time()
-        
         try:
             self.logger.info(f"Starting deployment test {test_id}")
-            
             # Step 1: Test SSH connectivity
             connectivity_result = self._test_ssh_connectivity(config)
-            if not connectivity_result['success']:
-                results['error'] = f"SSH connectivity failed: {connectivity_result['error']}"
+            if not connectivity_result.get('success'):
+                results['error'] = f"SSH connectivity failed: {connectivity_result.get('error')}"
                 return results
-            
-            results['steps'].extend(connectivity_result['steps'])
+            results['steps'].extend(connectivity_result.get('steps', []))
             results['connection_time'] = connectivity_result.get('connection_time')
-            
             # Step 2: Setup SSH tunnel for deployment
             tunnel_info = self._setup_deployment_tunnel(config)
-            if not tunnel_info['success']:
-                results['error'] = f"Tunnel setup failed: {tunnel_info['error']}"
+            if not tunnel_info.get('success'):
+                results['error'] = f"Tunnel setup failed: {tunnel_info.get('error')}"
                 return results
-            
-            self._add_step(results, f"Deployment tunnel established on port {tunnel_info['local_port']}", "success")
-            
+            self._add_step(results, f"Deployment tunnel established on port {tunnel_info.get('local_port')}", "success")
             # Step 3: Execute deployment scripts
-            deployment_result = self._execute_deployment(config, tunnel_info['local_port'])
-            results['deployment_output'] = deployment_result['output']
-            
-            if deployment_result['success']:
+            deployment_result = self._execute_deployment(config, tunnel_info.get('local_port'))
+            results['deployment_output'] = deployment_result.get('output', [])
+            if deployment_result.get('success'):
                 results['success'] = True
                 self._add_step(results, "Deployment completed successfully", "success")
             else:
-                results['error'] = deployment_result['error']
-                self._add_step(results, f"Deployment failed: {deployment_result['error']}", "error")
-            
+                results['error'] = deployment_result.get('error')
+                self._add_step(results, f"Deployment failed: {deployment_result.get('error')}", "error")
         except Exception as e:
             results['error'] = str(e)
             self._add_step(results, f"Deployment test failed: {str(e)}", "error")
-        
         results['total_time'] = round(time.time() - start_time, 2)
         return results
 
