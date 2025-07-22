@@ -5,16 +5,12 @@ import json
 connected_agents = {}
 
 async def handler(websocket, path):
-    # Register agent
     agent_id = await websocket.recv()
     connected_agents[agent_id] = websocket
     print(f"Agent {agent_id} connected.")
     try:
         while True:
-            # Wait for command from UI/API (simulate with input for demo)
-            command = await websocket.recv()
-            print(f"Received from agent {agent_id}: {command}")
-            # Here, you could process results sent by agent
+            await asyncio.sleep(1)  # Keep connection alive
     except websockets.ConnectionClosed:
         print(f"Agent {agent_id} disconnected.")
         del connected_agents[agent_id]
