@@ -50,7 +50,7 @@ def run_ansible_playbook():
     """Run ansible-playbook locally on backend server"""
     try:
         print("[SERVER] Running './deploy.sh' ...")
-        result = subprocess.run(["./deploy.sh"], capture_output=True, text=True)
+        result = subprocess.run(["bash", "deploy.sh"], capture_output=True, text=True)
         return jsonify({
             'success': result.returncode == 0,
             'stdout': result.stdout,
