@@ -82,8 +82,8 @@ def deploy():
 import requests
 import time
 
-BACKEND_API_URL = "http://3.142.95.128:5000/api/tasks"  # Set to your backend public API URL
-RESULTS_API_URL = "http://3.142.95.128:5000/api/results"  # Set to your backend public API URL
+BACKEND_API_URL = "http://13.58.212.239:5000/api/tasks"  # Set to your backend public API URL
+RESULTS_API_URL = "http://13.58.212.239:5000/api/results"  # Set to your backend public API URL
 AGENT_ID = str(uuid.uuid4())
 
 def poll_for_tasks():
