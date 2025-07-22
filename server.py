@@ -43,13 +43,14 @@ def add_task():
     print(f"[SERVER] Task added for agent {agent_id}: {task}")
     return jsonify({'status': 'task added'})
 
-@app.route('/api/deploy/run', methods=['POST'])
-def run_deploy_script():
-    """Run ./deploy.sh locally on server"""
-    try:
-        print("[SERVER] Running './deploy.sh deploy' ...")
-        result = subprocess.run(["bash", "./deploy.sh"], capture_output=True, text=True)
 
+# New endpoint to run ansible playbook directly on backend
+@app.route('/api/ansible/run', methods=['POST'])
+def run_ansible_playbook():
+    """Run ansible-playbook locally on backend server"""
+    try:
+        print("[SERVER] Running './deploy.sh' ...")
+        result = subprocess.run(["./deploy.sh"], capture_output=True, text=True)
         return jsonify({
             'success': result.returncode == 0,
             'stdout': result.stdout,
