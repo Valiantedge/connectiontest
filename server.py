@@ -43,10 +43,10 @@ def add_task():
 
 @app.route('/api/deploy/run', methods=['POST'])
 def run_deploy_script():
-    """Run ./deploy.sh deploy locally on server"""
+    """Run ./deploy.sh locally on server"""
     try:
-        print("[SERVER] Running ./deploy.sh deploy...")
-        result = subprocess.run(["./deploy.sh"], capture_output=True, text=True)
+        print("[SERVER] Running './deploy.sh deploy' ...")
+        result = subprocess.run(["bash", "./deploy.sh"], capture_output=True, text=True)
 
         return jsonify({
             'success': result.returncode == 0,
