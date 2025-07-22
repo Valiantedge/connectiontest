@@ -7,7 +7,7 @@ from flask import Flask, jsonify
 
 # Constants
 AGENT_ID_FILE = "agent_id.txt"
-TASK_API_URL = "http://13.58.212.239:5000/api/tasks"  # will be used with /<agent_id>
+TASK_API_URL_TEMPLATE = "http://13.58.212.239:5000/api/tasks/{agent_id}"
 RESULTS_API_URL = "http://13.58.212.239:5000/api/results"
 REGISTER_API_URL = "http://13.58.212.239:5000/api/register"
 
@@ -48,7 +48,8 @@ def poll_for_tasks():
     while True:
         try:
             print("[AGENT] Polling for tasks...")
-            response = requests.post(TASK_API_URL, json={"agent_id": AGENT_ID}, timeout=10)
+            response = requests.get(TASK_API_URL_TEMPLATE.format(agent_id=AGENT_ID), timeout=10)
+
             if response.status_code == 200:
                 tasks = response.json().get("tasks", [])
                 if not tasks:
