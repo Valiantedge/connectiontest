@@ -7,8 +7,10 @@ from flask import Flask, jsonify
 
 # Constants
 AGENT_ID_FILE = "agent_id.txt"
-TASK_API_URL = "http://13.58.212.239:5000/api/agent/tasks"
-RESULTS_API_URL = "http://13.58.212.239:5000/api/agent/task_result"
+TASK_API_URL = "http://13.58.212.239:5000/api/tasks"  # will be used with /<agent_id>
+RESULTS_API_URL = "http://13.58.212.239:5000/api/results"
+REGISTER_API_URL = "http://13.58.212.239:5000/api/register"
+
 
 # Generate or read agent ID
 if os.path.exists(AGENT_ID_FILE):
