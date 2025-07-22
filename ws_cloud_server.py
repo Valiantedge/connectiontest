@@ -28,9 +28,9 @@ async def send_command(agent_id, command):
         print(f"Agent {agent_id} not connected.")
 
 if __name__ == "__main__":
-async def main():
-    print("WebSocket server running on port 8765...")
-    async with websockets.serve(handler, "0.0.0.0", 8765):
-        await asyncio.Future()  # run forever
+    async def main():
+        print("WebSocket server running on port 8765...")
+        async with websockets.serve(handler, "0.0.0.0", 8765):
+            await asyncio.Future()  # run forever
 
-asyncio.run(main())
+    asyncio.run(main())
