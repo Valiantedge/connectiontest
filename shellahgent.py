@@ -7,8 +7,8 @@ from flask import Flask, jsonify
 
 # Constants
 AGENT_ID_FILE = "agent_id.txt"
-TASK_API_URL = "http://3.142.95.128:5000/api/agent/tasks"
-RESULTS_API_URL = "http://3.142.95.128:5000/api/agent/task_result"
+TASK_API_URL = "http://13.58.212.239:5000/api/agent/tasks"
+RESULTS_API_URL = "http://13.58.212.239:5000/api/agent/task_result"
 
 # Generate or read agent ID
 if os.path.exists(AGENT_ID_FILE):
@@ -30,9 +30,9 @@ def health():
 
 @app.route('/run-deploy', methods=['POST'])
 def run_deploy():
-    print("[AGENT] Running ./deploy.sh deploy")
+    print("[AGENT] Running ./deploy.sh ")
     try:
-        result = subprocess.run(["./deploy.sh", "deploy"], capture_output=True, text=True)
+        result = subprocess.run(["./deploy.sh"], capture_output=True, text=True)
         return jsonify({
             "stdout": result.stdout,
             "stderr": result.stderr,
