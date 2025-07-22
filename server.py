@@ -37,6 +37,10 @@ def add_task():
     data = request.json
     agent_id = data['agent_id']
     task = data['task']
+    # Normalize task type field for compatibility
+    if 'type' not in task and 'task_type' in task:
+        task['type'] = task['task_type']
+        del task['task_type']
     tasks[agent_id] = task
     print(f"[SERVER] Task added for agent {agent_id}: {task}")
     return jsonify({'status': 'task added'})
