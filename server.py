@@ -18,9 +18,7 @@ def register_agent():
 @app.route('/api/tasks/<agent_id>', methods=['GET'])
 def get_task(agent_id):
     task = tasks.get(agent_id)  # ✅ this keeps the task until agent confirms
-    if task:
-        return jsonify(task)
-    return jsonify({'task': None})
+    return jsonify({'task': task if task else None})
 
 @app.route('/api/results', methods=['POST'])
 def receive_result():
