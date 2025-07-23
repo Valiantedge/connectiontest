@@ -1,48 +1,59 @@
 import asyncio
 import websockets
-import json
 import paramiko
+import json
 
-async def run():
-    uri = "ws://13.58.212.239:8765"  # replace with actual IP
-    agent_id = "agent-001"
+AGENT_ID = "agent-001"
+WEBSOCKET_SERVER = "ws://13.58.212.239:8765"
 
-    async with websockets.connect(uri) as websocket:
-        print(f"Connected to cloud as {agent_id}")
-        await websocket.send(agent_id)
+async def run_ssh_command(host, username, password, cmd):
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=host, username=username, password=password, timeout=10)
+
+        stdin, stdout, stderr = client.exec_command(cmd)
+        out = stdout.read().decode()
+        err = stderr.read().decode()
+        returncode = stdout.channel.recv_exit_status()
+        client.close()
+
+        return {"stdout": out, "stderr": err, "returncode": returncode}
+    except Exception as e:
+        return {"stdout": "", "stderr": str(e), "returncode": -1}
+
+async def agent():
+    async with websockets.connect(WEBSOCKET_SERVER) as ws:
+        await ws.send(json.dumps({"type": "register", "agent_id": AGENT_ID}))
+        print(f"Connected to cloud as {AGENT_ID}")
 
         while True:
-            msg = await websocket.recv()
-            command = json.loads(msg)
-            print(f"Received command: {command}")
-
-            # Extract SSH details
-            host = command.get("host")
-            username = command.get("username")
-            password = command.get("password")
-            cmd = command.get("cmd")
-
-            # SSH and execute
             try:
-                ssh = paramiko.SSHClient()
-                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                ssh.connect(host, username=username, password=password)
+                message = await ws.recv()
+                data = json.loads(message)
 
-                stdin, stdout, stderr = ssh.exec_command(cmd)
-                result = {
-                    "stdout": stdout.read().decode(),
-                    "stderr": stderr.read().decode(),
-                    "returncode": 0
-                }
-                ssh.close()
-            except Exception as e:
-                result = {
-                    "stdout": "",
-                    "stderr": str(e),
-                    "returncode": 1
-                }
+                if data.get("type") == "command":
+                    command = data["command"]
+                    print("Received command:", command)
 
-            await websocket.send(json.dumps(result))
-            print("Sent result:", result)
+                    result = await run_ssh_command(
+                        command["host"],
+                        command["username"],
+                        command["password"],
+                        command["cmd"]
+                    )
 
-asyncio.run(run())
+                    await ws.send(json.dumps({
+                        "type": "result",
+                        "agent_id": AGENT_ID,
+                        "result": result
+                    }))
+                    print("Sent result:", result)
+
+            except websockets.exceptions.ConnectionClosed:
+                print("Connection closed. Retrying in 5 seconds...")
+                await asyncio.sleep(5)
+                return await agent()
+
+if __name__ == "__main__":
+    asyncio.run(agent())
