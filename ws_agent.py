@@ -16,44 +16,41 @@ async def run_ssh_command(host, username, password, cmd):
         out = stdout.read().decode()
         err = stderr.read().decode()
         returncode = stdout.channel.recv_exit_status()
-        client.close()
 
+        client.close()
         return {"stdout": out, "stderr": err, "returncode": returncode}
     except Exception as e:
         return {"stdout": "", "stderr": str(e), "returncode": -1}
 
 async def agent():
-    async with websockets.connect(WEBSOCKET_SERVER) as ws:
-        await ws.send(json.dumps({"type": "register", "agent_id": AGENT_ID}))
-        print(f"Connected to cloud as {AGENT_ID}")
+    while True:
+        try:
+            async with websockets.connect(WEBSOCKET_SERVER) as ws:
+                await ws.send(AGENT_ID)  # Initial registration
+                print(f"[AGENT] Connected to cloud as {AGENT_ID}")
 
-        while True:
-            try:
-                message = await ws.recv()
-                data = json.loads(message)
+                async for message in ws:
+                    data = json.loads(message)
 
-                if data.get("type") == "command":
-                    command = data["command"]
-                    print("Received command:", command)
+                    # Expecting a command dict
+                    if all(k in data for k in ("host", "username", "password", "cmd")):
+                        print("[AGENT] Received command:", data)
 
-                    result = await run_ssh_command(
-                        command["host"],
-                        command["username"],
-                        command["password"],
-                        command["cmd"]
-                    )
+                        result = await run_ssh_command(
+                            data["host"],
+                            data["username"],
+                            data["password"],
+                            data["cmd"]
+                        )
 
-                    await ws.send(json.dumps({
-                        "type": "result",
-                        "agent_id": AGENT_ID,
-                        "result": result
-                    }))
-                    print("Sent result:", result)
-
-            except websockets.exceptions.ConnectionClosed:
-                print("Connection closed. Retrying in 5 seconds...")
-                await asyncio.sleep(5)
-                return await agent()
+                        await ws.send(json.dumps({
+                            "agent_id": AGENT_ID,
+                            "result": result
+                        }))
+                        print("[AGENT] Sent result:", result)
+        except Exception as e:
+            print(f"[AGENT] Error or disconnected: {e}. Retrying in 5 seconds...")
+            await asyncio.sleep(5)
 
 if __name__ == "__main__":
     asyncio.run(agent())
