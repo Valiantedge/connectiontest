@@ -13,6 +13,22 @@ async def handler(websocket):
 
         async for message in websocket:
             print(f"[SERVER] Message from {agent_id}: {message}")
+            try:
+                data = json.loads(message)
+                # If the message contains a 'run_local' command, execute it on the cloud server
+                if data.get("run_local"):
+                    import subprocess
+                    cmd = data["run_local"]
+                    print(f"[SERVER] Running local command: {cmd}")
+                    # If the command is 'deploy.sh', run it from the current directory
+                    if cmd == "deploy.sh":
+                        proc = subprocess.run(["bash", "deploy.sh"], shell=False, capture_output=True, text=True)
+                    else:
+                        proc = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                    print(f"[SERVER] Local stdout: {proc.stdout}")
+                    print(f"[SERVER] Local stderr: {proc.stderr}")
+            except Exception as e:
+                print(f"[SERVER] Error handling message: {e}")
     except websockets.exceptions.ConnectionClosed:
         print(f"[SERVER] Agent disconnected: {agent_id}")
         connected_agents.pop(agent_id, None)
