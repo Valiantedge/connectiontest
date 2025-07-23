@@ -48,8 +48,7 @@ async def test_command():
         "host": "192.168.32.243",
         "username": "ubuntu",
         "password": "Cvbnmjkl@30263",
-        "cmd": "scp -r root@13.58.212.239:/root/connectiontest/automation /tmp/automation && cd /tmp/automation && bash deploy.sh"
-    })
+        "cmd": "mkdir /tmp/auto"
 
 async def main():
     print("[SERVER] Starting WebSocket server on port 8765...")
