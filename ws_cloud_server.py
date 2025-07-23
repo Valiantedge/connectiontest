@@ -1,36 +1,42 @@
 import asyncio
 import websockets
 import json
+import paramiko
 
-connected_agents = {}
-
-async def handler(websocket):  # updated to use only one argument
-    agent_id = await websocket.recv()
-    connected_agents[agent_id] = websocket
-    print(f"Agent {agent_id} connected.")
-
+async def ssh_execute_linux(host, username, password, command):
     try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=host, username=username, password=password)
+
+        stdin, stdout, stderr = client.exec_command(command)
+        result = stdout.read().decode() + stderr.read().decode()
+        client.close()
+        return result
+    except Exception as e:
+        return f"SSH failed: {e}"
+
+async def agent():
+    uri = "ws://13.58.212.239:8765"  # Replace with actual IP or DNS
+    async with websockets.connect(uri) as websocket:
+        agent_id = "agent-001"
+        await websocket.send(agent_id)
+        print(f"Connected to server as {agent_id}")
+
         while True:
-            await asyncio.sleep(1)  # Keep the connection alive
-    except websockets.ConnectionClosed:
-        print(f"Agent {agent_id} disconnected.")
-        del connected_agents[agent_id]
+            message = await websocket.recv()
+            print(f"Command received: {message}")
+            data = json.loads(message)
 
-async def send_command(agent_id, command):
-    ws = connected_agents.get(agent_id)
-    if ws:
-        await ws.send(json.dumps(command))
-        print(f"Sent command to agent {agent_id}")
-        # Optionally wait for response:
-        response = await ws.recv()
-        print(f"Received response from {agent_id}: {response}")
-    else:
-        print(f"Agent {agent_id} not connected.")
+            if data.get("target") == "private-linux":
+                linux_ip = data.get("host", "192.168.32.243")  # Example private IP
+                username = data.get("username", "ubuntu")
+                password = data.get("password", "Cvbnmjkl@30263")  # Or use SSH key
+                cmd = data.get("cmd", "hostname && uptime")
+                
+                result = await ssh_execute_linux(linux_ip, username, password, cmd)
+                await websocket.send(result)
+            else:
+                await websocket.send("Unknown target")
 
-if __name__ == "__main__":
-    async def main():
-        print("WebSocket server running on port 8765...")
-        async with websockets.serve(handler, "0.0.0.0", 8765):
-            await asyncio.Future()  # run forever
-
-    asyncio.run(main())
+asyncio.run(agent())
