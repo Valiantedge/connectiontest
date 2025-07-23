@@ -12,6 +12,15 @@ async def handler(websocket):
         print(f"[SERVER] Agent connected: {agent_id}")
         connected_agents[agent_id] = websocket
 
+        # ✅ Send command immediately after agent connects
+        await send_command(agent_id, {
+            "host": "192.168.32.243",
+            "username": "ubuntu",
+            "password": "Cvbnmjkl@30263",
+            "cmd": "hostname && uptime"
+        })
+
+        # Print responses from the agent
         async for message in websocket:
             print(f"[SERVER] Message from {agent_id}: {message}")
     except websockets.exceptions.ConnectionClosed:
@@ -29,20 +38,9 @@ async def send_command(agent_id, command_dict):
     else:
         print(f"[SERVER] Agent {agent_id} not connected")
 
-# Example test command after agent connects
-async def test_command():
-    await asyncio.sleep(5)  # give time for agent to connect
-    await send_command("agent-001", {
-        "host": "192.168.32.243",
-        "username": "ubuntu",
-        "password": "Cvbnmjkl@30263",
-        "cmd": "hostname && uptime"
-    })
-
 async def main():
     print("[SERVER] Starting WebSocket server on port 8765...")
     async with websockets.serve(handler, "0.0.0.0", 8765):
-        await test_command()
         await asyncio.Future()  # run forever
 
 if __name__ == "__main__":
