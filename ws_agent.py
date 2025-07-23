@@ -3,44 +3,40 @@ import websockets
 import json
 import paramiko
 
-AGENT_ID = "agent-001"
-CLOUD_WS = "ws://13.58.212.239:8765"  # Replace with actual IP
+agent_id = "agent-001"
+server_url = "ws://13.58.212.239:8765"  # Replace with your server's IP or hostname
 
-async def run_ssh_command(host, username, password, command):
+async def ssh_execute_command(host, username, password, command):
     try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(host, username=username, password=password)
-        stdin, stdout, stderr = ssh.exec_command(command)
-        return {
-            "stdout": stdout.read().decode(),
-            "stderr": stderr.read().decode(),
-            "returncode": 0
-        }
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=host, username=username, password=password)
+
+        stdin, stdout, stderr = client.exec_command(command)
+        out = stdout.read().decode()
+        err = stderr.read().decode()
+        rc = stdout.channel.recv_exit_status()
+        client.close()
+
+        return {"stdout": out, "stderr": err, "returncode": rc}
     except Exception as e:
-        return {
-            "stdout": "",
-            "stderr": str(e),
-            "returncode": 1
-        }
+        return {"stdout": "", "stderr": str(e), "returncode": -1}
 
 async def agent():
-    async with websockets.connect(CLOUD_WS) as websocket:
-        print(f"Connected to cloud as {AGENT_ID}")
-        await websocket.send(AGENT_ID)
+    async with websockets.connect(server_url) as websocket:
+        print(f"Connected to cloud as {agent_id}")
+        await websocket.send(agent_id)
 
         async for message in websocket:
-            command = json.loads(message)
-            print(f"Received command: {command}")
-
-            result = await run_ssh_command(
-                command['host'],
-                command['username'],
-                command['password'],
-                command['cmd']
+            command_data = json.loads(message)
+            print(f"Received command: {command_data}")
+            result = await ssh_execute_command(
+                command_data["host"],
+                command_data["username"],
+                command_data["password"],
+                command_data["cmd"]
             )
-
-            print(f"Sent result: {result}")
             await websocket.send(json.dumps(result))
+            print(f"Sent result: {result}")
 
 asyncio.run(agent())

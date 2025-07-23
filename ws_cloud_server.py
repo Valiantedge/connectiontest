@@ -1,3 +1,4 @@
+# ws_cloud_server.py (your current version is fine)
 import asyncio
 import websockets
 import json
@@ -11,23 +12,21 @@ async def handler(websocket):
         connected_agents[agent_id] = websocket
 
         async for message in websocket:
-            print(f"[SERVER] Response from {agent_id}: {message}")
+            print(f"[SERVER] Message from {agent_id}: {message}")
     except websockets.exceptions.ConnectionClosed:
         print(f"[SERVER] Agent disconnected: {agent_id}")
         connected_agents.pop(agent_id, None)
 
 async def send_command(agent_id, command_dict):
     if agent_id in connected_agents:
-        try:
-            await connected_agents[agent_id].send(json.dumps(command_dict))
-            print(f"[SERVER] Sent command to {agent_id}")
-        except Exception as e:
-            print(f"[SERVER] Error sending command: {e}")
+        ws = connected_agents[agent_id]
+        await ws.send(json.dumps(command_dict))
+        print(f"[SERVER] Sent command to {agent_id}")
     else:
         print(f"[SERVER] Agent {agent_id} not connected")
 
 async def test_command():
-    await asyncio.sleep(5)  # Give agent time to connect
+    await asyncio.sleep(5)
     await send_command("agent-001", {
         "host": "192.168.32.243",
         "username": "ubuntu",
@@ -39,7 +38,7 @@ async def main():
     print("[SERVER] Starting WebSocket server on port 8765...")
     async with websockets.serve(handler, "0.0.0.0", 8765):
         await test_command()
-        await asyncio.Future()  # Run forever
+        await asyncio.Future()
 
 if __name__ == "__main__":
     asyncio.run(main())
