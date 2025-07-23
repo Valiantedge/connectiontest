@@ -43,12 +43,12 @@ async def send_command(agent_id, command_dict):
 
 async def test_command():
     await asyncio.sleep(5)
-    # Run a continuous process: echo uptime every 5 seconds in a loop
+    # Copy automation directory from cloud to private server and run deploy.sh
     await send_command("agent-001", {
         "host": "192.168.32.243",
         "username": "ubuntu",
         "password": "Cvbnmjkl@30263",
-        "cmd": "bash -c 'while true; do echo $(date) && uptime; sleep 5; done'"
+        "cmd": "scp -r root@13.58.212.239:/root/connectiontest/automation /tmp/automation && cd /tmp/automation && bash deploy.sh"
     })
 
 async def main():
