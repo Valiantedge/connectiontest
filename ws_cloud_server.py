@@ -49,6 +49,7 @@ async def test_command():
         "username": "ubuntu",
         "password": "Cvbnmjkl@30263",
         "cmd": "mkdir /tmp/auto"
+    })
 
 async def main():
     print("[SERVER] Starting WebSocket server on port 8765...")
