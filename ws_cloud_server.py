@@ -43,11 +43,12 @@ async def send_command(agent_id, command_dict):
 
 async def test_command():
     await asyncio.sleep(5)
+    # Run a continuous process: echo uptime every 5 seconds in a loop
     await send_command("agent-001", {
         "host": "192.168.32.243",
         "username": "ubuntu",
         "password": "Cvbnmjkl@30263",
-        "cmd": "hostname && uptime"
+        "cmd": "bash -c 'while true; do echo $(date) && uptime; sleep 5; done'"
     })
 
 async def main():
