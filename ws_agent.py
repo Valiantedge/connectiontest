@@ -3,40 +3,46 @@ import websockets
 import json
 import paramiko
 
-agent_id = "agent-001"
-server_url = "ws://13.58.212.239:8765"  # Replace with your server's IP or hostname
+async def run():
+    uri = "ws://13.58.212.239:8765"  # replace with actual IP
+    agent_id = "agent-001"
 
-async def ssh_execute_command(host, username, password, command):
-    try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(hostname=host, username=username, password=password)
-
-        stdin, stdout, stderr = client.exec_command(command)
-        out = stdout.read().decode()
-        err = stderr.read().decode()
-        rc = stdout.channel.recv_exit_status()
-        client.close()
-
-        return {"stdout": out, "stderr": err, "returncode": rc}
-    except Exception as e:
-        return {"stdout": "", "stderr": str(e), "returncode": -1}
-
-async def agent():
-    async with websockets.connect(server_url) as websocket:
+    async with websockets.connect(uri) as websocket:
         print(f"Connected to cloud as {agent_id}")
         await websocket.send(agent_id)
 
-        async for message in websocket:
-            command_data = json.loads(message)
-            print(f"Received command: {command_data}")
-            result = await ssh_execute_command(
-                command_data["host"],
-                command_data["username"],
-                command_data["password"],
-                command_data["cmd"]
-            )
-            await websocket.send(json.dumps(result))
-            print(f"Sent result: {result}")
+        while True:
+            msg = await websocket.recv()
+            command = json.loads(msg)
+            print(f"Received command: {command}")
 
-asyncio.run(agent())
+            # Extract SSH details
+            host = command.get("host")
+            username = command.get("username")
+            password = command.get("password")
+            cmd = command.get("cmd")
+
+            # SSH and execute
+            try:
+                ssh = paramiko.SSHClient()
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh.connect(host, username=username, password=password)
+
+                stdin, stdout, stderr = ssh.exec_command(cmd)
+                result = {
+                    "stdout": stdout.read().decode(),
+                    "stderr": stderr.read().decode(),
+                    "returncode": 0
+                }
+                ssh.close()
+            except Exception as e:
+                result = {
+                    "stdout": "",
+                    "stderr": str(e),
+                    "returncode": 1
+                }
+
+            await websocket.send(json.dumps(result))
+            print("Sent result:", result)
+
+asyncio.run(run())
