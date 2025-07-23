@@ -4,13 +4,14 @@ import json
 
 connected_agents = {}
 
-async def handler(websocket, path):
+async def handler(websocket):  # updated to use only one argument
     agent_id = await websocket.recv()
     connected_agents[agent_id] = websocket
     print(f"Agent {agent_id} connected.")
+
     try:
         while True:
-            await asyncio.sleep(1)  # Keep connection alive
+            await asyncio.sleep(1)  # Keep the connection alive
     except websockets.ConnectionClosed:
         print(f"Agent {agent_id} disconnected.")
         del connected_agents[agent_id]
@@ -20,6 +21,9 @@ async def send_command(agent_id, command):
     if ws:
         await ws.send(json.dumps(command))
         print(f"Sent command to agent {agent_id}")
+        # Optionally wait for response:
+        response = await ws.recv()
+        print(f"Received response from {agent_id}: {response}")
     else:
         print(f"Agent {agent_id} not connected.")
 
